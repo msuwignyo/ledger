@@ -1,13 +1,19 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock localStorage
 const localStorageMock = (() => {
   let store: Record<string, string> = {};
   return {
     getItem: (key: string) => store[key] ?? null,
-    setItem: (key: string, value: string) => { store[key] = value; },
-    removeItem: (key: string) => { delete store[key]; },
-    clear: () => { store = {}; },
+    setItem: (key: string, value: string) => {
+      store[key] = value;
+    },
+    removeItem: (key: string) => {
+      delete store[key];
+    },
+    clear: () => {
+      store = {};
+    },
   };
 })();
 vi.stubGlobal("localStorage", localStorageMock);
@@ -16,10 +22,10 @@ vi.stubGlobal("localStorage", localStorageMock);
 vi.stubGlobal("window", {});
 
 import {
-  getTransactions,
-  saveTransactions,
   getCategories,
+  getTransactions,
   saveCategories,
+  saveTransactions,
 } from "./storage";
 import type { Transaction } from "./types";
 

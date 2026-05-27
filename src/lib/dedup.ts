@@ -11,7 +11,7 @@ function makeKey(t: Transaction): string {
 
 export function deduplicateTransactions(
   existing: Transaction[],
-  incoming: Transaction[]
+  incoming: Transaction[],
 ): DeduplicateResult {
   const existingKeys = new Set(existing.map(makeKey));
   const newTransactions = incoming.filter((t) => !existingKeys.has(makeKey(t)));

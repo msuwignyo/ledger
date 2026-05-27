@@ -46,7 +46,10 @@ export function Sidebar() {
         </button>
       </aside>
 
-      <UploadModal open={uploadOpen} onClose={() => setUploadOpen(false)} />
+      <UploadModal
+        open={uploadOpen}
+        onCloseAction={() => setUploadOpen(false)}
+      />
     </>
   );
 }

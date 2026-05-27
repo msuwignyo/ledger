@@ -1,8 +1,13 @@
-import type { Transaction, GroupedSpending, CategorySpending, Period } from "./types";
+import type {
+  CategorySpending,
+  GroupedSpending,
+  Period,
+  Transaction,
+} from "./types";
 
 export function groupTransactions(
   transactions: Transaction[],
-  period: Period
+  period: Period,
 ): GroupedSpending[] {
   const map = new Map<string, { total: number; count: number }>();
 
@@ -43,7 +48,7 @@ function getISOWeek(d: Date): number {
       ((date.getTime() - week1.getTime()) / 86400000 -
         3 +
         ((week1.getDay() + 6) % 7)) /
-        7
+        7,
     )
   );
 }
@@ -51,7 +56,7 @@ function getISOWeek(d: Date): number {
 export function filterByDateRange(
   transactions: Transaction[],
   start: string | null,
-  end: string | null
+  end: string | null,
 ): Transaction[] {
   return transactions.filter((tx) => {
     if (start && tx.date < start) return false;
@@ -66,7 +71,10 @@ export function computeSummary(transactions: Transaction[]): {
   topCategory: string;
 } {
   const expenses = transactions.filter((tx) => tx.amount < 0);
-  const totalExpense = expenses.reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
+  const totalExpense = expenses.reduce(
+    (sum, tx) => sum + Math.abs(tx.amount),
+    0,
+  );
   const categoryCounts = new Map<string, number>();
   for (const tx of expenses) {
     categoryCounts.set(tx.category, (categoryCounts.get(tx.category) ?? 0) + 1);
@@ -74,12 +82,17 @@ export function computeSummary(transactions: Transaction[]): {
   let topCategory = "—";
   let maxCount = 0;
   for (const [cat, count] of categoryCounts) {
-    if (count > maxCount) { maxCount = count; topCategory = cat; }
+    if (count > maxCount) {
+      maxCount = count;
+      topCategory = cat;
+    }
   }
   return { totalExpense, transactionCount: transactions.length, topCategory };
 }
 
-export function getCategorySpending(transactions: Transaction[]): CategorySpending[] {
+export function getCategorySpending(
+  transactions: Transaction[],
+): CategorySpending[] {
   const map = new Map<string, { total: number; count: number }>();
   for (const tx of transactions) {
     if (tx.amount >= 0) continue; // skip credits
