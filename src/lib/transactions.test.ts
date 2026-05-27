@@ -118,8 +118,24 @@ describe("getDailyTotals", () => {
 
   it("sums multiple transactions on the same day", () => {
     const multi: Transaction[] = [
-      { id: "a", date: "2026-06-01", description: "X", amount: -10000, category: "Food", bank: "bca", sourceFile: "x.pdf" },
-      { id: "b", date: "2026-06-01", description: "Y", amount: -20000, category: "Food", bank: "bca", sourceFile: "x.pdf" },
+      {
+        id: "a",
+        date: "2026-06-01",
+        description: "X",
+        amount: -10000,
+        category: "Food",
+        bank: "bca",
+        sourceFile: "x.pdf",
+      },
+      {
+        id: "b",
+        date: "2026-06-01",
+        description: "Y",
+        amount: -20000,
+        category: "Food",
+        bank: "bca",
+        sourceFile: "x.pdf",
+      },
     ];
     const result = getDailyTotals(multi, "2026-06");
     expect(result["2026-06-01"]).toBe(30000);
