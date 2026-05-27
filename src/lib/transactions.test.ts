@@ -157,6 +157,7 @@ describe("getWeeklyTotalsForMonth", () => {
     expect(result[1]).toBe(0);
     expect(result[2]).toBe(200000); // Apr 15
     expect(result[3]).toBe(0);
+    expect(result[4]).toBe(0); // Apr 27–30 partial week
   });
 
   it("excludes overflow days from adjacent months", () => {
@@ -173,6 +174,6 @@ describe("getWeeklyTotalsForMonth", () => {
   it("returns all-zero rows for month with no transactions", () => {
     const result = getWeeklyTotalsForMonth(txs, "2025-01");
     expect(result.every((n: number) => n === 0)).toBe(true);
-    expect(result.length).toBeGreaterThan(0);
+    expect(result.length).toBe(5); // Jan 2025 starts Wednesday → 5 rows
   });
 });
