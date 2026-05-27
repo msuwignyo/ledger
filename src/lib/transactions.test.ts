@@ -3,6 +3,7 @@ import {
   computeSummary,
   filterByDateRange,
   getCategorySpending,
+  getDailyTotals,
   groupTransactions,
 } from "./transactions";
 import type { Transaction } from "./types";
@@ -94,5 +95,33 @@ describe("getCategorySpending", () => {
     const result = getCategorySpending(txs);
     const other = result.find((c) => c.category === "Other");
     expect(other).toBeUndefined();
+  });
+});
+
+describe("getDailyTotals", () => {
+  it("returns daily expense totals for the given month", () => {
+    const result = getDailyTotals(txs, "2026-04");
+    expect(result["2026-04-01"]).toBe(100000);
+    expect(result["2026-04-15"]).toBe(200000);
+    expect(result["2026-05-01"]).toBeUndefined();
+  });
+
+  it("excludes credits (positive amounts)", () => {
+    const result = getDailyTotals(txs, "2026-05");
+    expect(result["2026-05-10"]).toBeUndefined();
+    expect(result["2026-05-01"]).toBe(50000);
+  });
+
+  it("returns empty object for month with no transactions", () => {
+    expect(getDailyTotals(txs, "2025-01")).toEqual({});
+  });
+
+  it("sums multiple transactions on the same day", () => {
+    const multi: Transaction[] = [
+      { id: "a", date: "2026-06-01", description: "X", amount: -10000, category: "Food", bank: "bca", sourceFile: "x.pdf" },
+      { id: "b", date: "2026-06-01", description: "Y", amount: -20000, category: "Food", bank: "bca", sourceFile: "x.pdf" },
+    ];
+    const result = getDailyTotals(multi, "2026-06");
+    expect(result["2026-06-01"]).toBe(30000);
   });
 });

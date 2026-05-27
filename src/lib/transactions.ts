@@ -105,3 +105,16 @@ export function getCategorySpending(
     .map(([category, { total, count }]) => ({ category, total, count }))
     .sort((a, b) => b.total - a.total);
 }
+
+export function getDailyTotals(
+  transactions: Transaction[],
+  month: string,
+): Record<string, number> {
+  const result: Record<string, number> = {};
+  for (const tx of transactions) {
+    if (tx.amount >= 0) continue;
+    if (!tx.date.startsWith(month)) continue;
+    result[tx.date] = (result[tx.date] ?? 0) + Math.abs(tx.amount);
+  }
+  return result;
+}
