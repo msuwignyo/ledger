@@ -1,25 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TransactionTable } from "@/components/transactions/TransactionTable";
 import { getTransactions, saveTransactions } from "@/lib/storage";
 import type { Transaction } from "@/lib/types";
 
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const initializedRef = useRef(false);
 
   useEffect(() => {
     setTransactions(getTransactions());
+    initializedRef.current = true;
   }, []);
 
+  useEffect(() => {
+    if (initializedRef.current) {
+      saveTransactions(transactions);
+    }
+  }, [transactions]);
+
   function handleCategoryChange(id: string, category: string) {
-    setTransactions((prev) => {
-      const updated = prev.map((tx) =>
-        tx.id === id ? { ...tx, category } : tx,
-      );
-      saveTransactions(updated);
-      return updated;
-    });
+    setTransactions((prev) =>
+      prev.map((tx) => (tx.id === id ? { ...tx, category } : tx)),
+    );
   }
 
   return (
