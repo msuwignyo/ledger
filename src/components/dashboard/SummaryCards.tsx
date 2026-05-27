@@ -36,7 +36,7 @@ export function SummaryCards({
 function Card({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="rounded-xl p-5"
+      className="rounded-xl py-3 px-4"
       style={{
         background: "#111722",
         border: "1px solid rgba(255,255,255,0.07)",
