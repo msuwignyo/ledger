@@ -10,10 +10,10 @@ const OPTIONS: { value: Period; label: string }[] = [
 
 export function PeriodToggle({
   value,
-  onChange,
+  onChangeAction,
 }: {
   value: Period;
-  onChange: (p: Period) => void;
+  onChangeAction: (p: Period) => void;
 }) {
   return (
     <div className="flex gap-1 bg-zinc-100 p-1 rounded-full">
@@ -21,7 +21,7 @@ export function PeriodToggle({
         <button
           key={opt.value}
           type="button"
-          onClick={() => onChange(opt.value)}
+          onClick={() => onChangeAction(opt.value)}
           className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
             value === opt.value
               ? "bg-white text-zinc-900 shadow-sm"
