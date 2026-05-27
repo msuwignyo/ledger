@@ -68,7 +68,7 @@ export default function DashboardPage() {
           {chartType === "bar" ? (
             <SpendingBarChart data={grouped} period={period} />
           ) : (
-            <FrequencyChart transactions={transactions} />
+            <FrequencyChart transactions={transactions} period={period} />
           )}
         </div>
 
