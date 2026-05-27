@@ -15,6 +15,45 @@ function formatIDR(amount: number): string {
   return amount < 0 ? `-Rp ${abs}` : `+Rp ${abs}`;
 }
 
+type SortHeaderProps = {
+  col: SortKey;
+  label: string;
+  active: boolean;
+  dir: SortDir;
+  onSortAction: (k: SortKey) => void;
+};
+
+function SortHeader({
+  col,
+  label,
+  active,
+  dir,
+  onSortAction,
+}: SortHeaderProps) {
+  return (
+    <th
+      aria-sort={active ? (dir === "asc" ? "ascending" : "descending") : "none"}
+      className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wide cursor-pointer select-none hover:text-zinc-700"
+      onClick={() => onSortAction(col)}
+      onKeyDown={(e) =>
+        (e.key === "Enter" || e.key === " ") && onSortAction(col)
+      }
+      tabIndex={0}
+    >
+      {label}{" "}
+      {active ? (
+        dir === "asc" ? (
+          "↑"
+        ) : (
+          "↓"
+        )
+      ) : (
+        <span className="opacity-30">↕</span>
+      )}
+    </th>
+  );
+}
+
 export function TransactionTable({
   transactions,
   onCategoryChangeAction,
@@ -55,31 +94,6 @@ export function TransactionTable({
           : String(av).localeCompare(String(bv));
       return sortDir === "asc" ? cmp : -cmp;
     });
-
-  function SortHeader({ col, label }: { col: SortKey; label: string }) {
-    const active = sortKey === col;
-    return (
-      <th
-        className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wide cursor-pointer select-none hover:text-zinc-700"
-        onClick={() => handleSort(col)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") handleSort(col);
-        }}
-        tabIndex={0}
-      >
-        {label}{" "}
-        {active ? (
-          sortDir === "asc" ? (
-            "↑"
-          ) : (
-            "↓"
-          )
-        ) : (
-          <span className="opacity-30">↕</span>
-        )}
-      </th>
-    );
-  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -146,11 +160,41 @@ export function TransactionTable({
           <table className="w-full">
             <thead className="bg-zinc-50 border-b border-zinc-200">
               <tr>
-                <SortHeader col="date" label="Date" />
-                <SortHeader col="description" label="Description" />
-                <SortHeader col="amount" label="Amount" />
-                <SortHeader col="category" label="Category" />
-                <SortHeader col="bank" label="Bank" />
+                <SortHeader
+                  col="date"
+                  label="Date"
+                  active={sortKey === "date"}
+                  dir={sortDir}
+                  onSortAction={handleSort}
+                />
+                <SortHeader
+                  col="description"
+                  label="Description"
+                  active={sortKey === "description"}
+                  dir={sortDir}
+                  onSortAction={handleSort}
+                />
+                <SortHeader
+                  col="amount"
+                  label="Amount"
+                  active={sortKey === "amount"}
+                  dir={sortDir}
+                  onSortAction={handleSort}
+                />
+                <SortHeader
+                  col="category"
+                  label="Category"
+                  active={sortKey === "category"}
+                  dir={sortDir}
+                  onSortAction={handleSort}
+                />
+                <SortHeader
+                  col="bank"
+                  label="Bank"
+                  active={sortKey === "bank"}
+                  dir={sortDir}
+                  onSortAction={handleSort}
+                />
                 <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wide">
                   Source
                 </th>

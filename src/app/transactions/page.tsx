@@ -13,11 +13,13 @@ export default function TransactionsPage() {
   }, []);
 
   function handleCategoryChange(id: string, category: string) {
-    const updated = transactions.map((tx) =>
-      tx.id === id ? { ...tx, category } : tx,
-    );
-    setTransactions(updated);
-    saveTransactions(updated);
+    setTransactions((prev) => {
+      const updated = prev.map((tx) =>
+        tx.id === id ? { ...tx, category } : tx,
+      );
+      saveTransactions(updated);
+      return updated;
+    });
   }
 
   return (

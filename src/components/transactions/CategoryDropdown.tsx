@@ -11,7 +11,7 @@ export function CategoryDropdown({
   onChangeAction: (category: string) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const categories = getCategories();
+  const [categories] = useState(() => getCategories());
 
   return (
     <div className="relative">
