@@ -161,7 +161,7 @@ describe("getWeeklyTotalsForMonth", () => {
 
   it("excludes overflow days from adjacent months", () => {
     const result = getWeeklyTotalsForMonth(txs, "2026-04");
-    const total = result.reduce((s, n) => s + n, 0);
+    const total = result.reduce((s: number, n: number) => s + n, 0);
     expect(total).toBe(300000); // only Apr transactions (100k + 200k)
   });
 
@@ -172,7 +172,7 @@ describe("getWeeklyTotalsForMonth", () => {
 
   it("returns all-zero rows for month with no transactions", () => {
     const result = getWeeklyTotalsForMonth(txs, "2025-01");
-    expect(result.every((n) => n === 0)).toBe(true);
+    expect(result.every((n: number) => n === 0)).toBe(true);
     expect(result.length).toBeGreaterThan(0);
   });
 });
