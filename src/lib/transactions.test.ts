@@ -4,6 +4,7 @@ import {
   filterByDateRange,
   getCategorySpending,
   getDailyTotals,
+  getWeeklyTotalsForMonth,
   groupTransactions,
 } from "./transactions";
 import type { Transaction } from "./types";
@@ -139,5 +140,39 @@ describe("getDailyTotals", () => {
     ];
     const result = getDailyTotals(multi, "2026-06");
     expect(result["2026-06-01"]).toBe(30000);
+  });
+});
+
+describe("getWeeklyTotalsForMonth", () => {
+  // April 2026 starts on Wednesday (Mon=0 → dow=2)
+  // Row 0: Mon Mar 30, Tue Mar 31, Wed Apr 1(100k), Thu Apr 2, Fri Apr 3, Sat Apr 4, Sun Apr 5
+  // Row 1: Apr 6–12 → 0
+  // Row 2: Apr 13–19 → Apr 15(200k)
+  // Row 3: Apr 20–26 → 0
+  // Row 4: Apr 27–30 → 0
+
+  it("returns correct weekly totals per calendar row", () => {
+    const result = getWeeklyTotalsForMonth(txs, "2026-04");
+    expect(result[0]).toBe(100000); // Apr 1
+    expect(result[1]).toBe(0);
+    expect(result[2]).toBe(200000); // Apr 15
+    expect(result[3]).toBe(0);
+  });
+
+  it("excludes overflow days from adjacent months", () => {
+    const result = getWeeklyTotalsForMonth(txs, "2026-04");
+    const total = result.reduce((s, n) => s + n, 0);
+    expect(total).toBe(300000); // only Apr transactions (100k + 200k)
+  });
+
+  it("returns correct number of rows for the month", () => {
+    const result = getWeeklyTotalsForMonth(txs, "2026-04");
+    expect(result.length).toBe(5); // April 2026 needs 5 rows
+  });
+
+  it("returns all-zero rows for month with no transactions", () => {
+    const result = getWeeklyTotalsForMonth(txs, "2025-01");
+    expect(result.every((n) => n === 0)).toBe(true);
+    expect(result.length).toBeGreaterThan(0);
   });
 });

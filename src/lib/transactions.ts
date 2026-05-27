@@ -118,3 +118,26 @@ export function getDailyTotals(
   }
   return result;
 }
+
+export function getWeeklyTotalsForMonth(
+  transactions: Transaction[],
+  month: string,
+): number[] {
+  const dailyTotals = getDailyTotals(transactions, month);
+  const [year, monthNum] = month.split("-").map(Number);
+  const firstDay = new Date(year, monthNum - 1, 1);
+  const dow = (firstDay.getDay() + 6) % 7; // Mon=0, Tue=1, ..., Sun=6
+  const daysInMonth = new Date(year, monthNum, 0).getDate();
+  const numWeeks = Math.ceil((dow + daysInMonth) / 7);
+
+  return Array.from({ length: numWeeks }, (_, w) => {
+    let weekTotal = 0;
+    for (let d = 0; d < 7; d++) {
+      const dayNum = w * 7 + d - dow + 1;
+      if (dayNum < 1 || dayNum > daysInMonth) continue;
+      const dateStr = `${month}-${String(dayNum).padStart(2, "0")}`;
+      weekTotal += dailyTotals[dateStr] ?? 0;
+    }
+    return weekTotal;
+  });
+}
