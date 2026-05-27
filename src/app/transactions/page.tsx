@@ -7,17 +7,18 @@ import type { Transaction } from "@/lib/types";
 
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const initializedRef = useRef(false);
+  const skipSaveRef = useRef(true);
 
   useEffect(() => {
     setTransactions(getTransactions());
-    initializedRef.current = true;
   }, []);
 
   useEffect(() => {
-    if (initializedRef.current) {
-      saveTransactions(transactions);
+    if (skipSaveRef.current) {
+      skipSaveRef.current = false;
+      return;
     }
+    saveTransactions(transactions);
   }, [transactions]);
 
   function handleCategoryChange(id: string, category: string) {
