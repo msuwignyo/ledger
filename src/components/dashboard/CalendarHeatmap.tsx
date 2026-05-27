@@ -52,7 +52,7 @@ function buildCalendarRows(month: string): CalendarCell[][] {
     Array.from({ length: 7 }, (__, d) => {
       const dayNum = w * 7 + d - dow + 1;
       const cellDate = new Date(year, monthNum - 1, dayNum);
-      const dateStr = cellDate.toISOString().slice(0, 10);
+      const dateStr = `${cellDate.getFullYear()}-${String(cellDate.getMonth() + 1).padStart(2, "0")}-${String(cellDate.getDate()).padStart(2, "0")}`;
       return {
         date: dateStr,
         dayNum: cellDate.getDate(),
@@ -62,14 +62,17 @@ function buildCalendarRows(month: string): CalendarCell[][] {
   );
 }
 
-const TODAY = new Date().toISOString().slice(0, 10);
-
 export function CalendarHeatmap({
   transactions,
 }: {
   transactions: Transaction[];
 }) {
   const [month, setMonth] = useState(getCurrentMonth);
+
+  const today = useMemo(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  }, []);
 
   const dailyTotals = useMemo(
     () => getDailyTotals(transactions, month),
@@ -80,18 +83,21 @@ export function CalendarHeatmap({
     [transactions, month],
   );
 
-  const maxDaily = Math.max(...Object.values(dailyTotals), 0);
-  const maxWeekly = Math.max(...weeklyTotals, 0);
-  const monthTotal = Object.values(dailyTotals).reduce((s, n) => s + n, 0);
-
-  const circleScale = d3
-    .scaleSqrt()
-    .domain([0, maxDaily || 1])
-    .range([4, 28]);
-  const barScale = d3
-    .scaleLinear()
-    .domain([0, maxWeekly || 1])
-    .range([4, 52]);
+  const { monthTotal, circleScale, barScale } = useMemo(() => {
+    const maxDaily = Math.max(...Object.values(dailyTotals), 0);
+    const maxWeekly = Math.max(...weeklyTotals, 0);
+    return {
+      monthTotal: Object.values(dailyTotals).reduce((s, n) => s + n, 0),
+      circleScale: d3
+        .scaleSqrt()
+        .domain([0, maxDaily || 1])
+        .range([4, 28]),
+      barScale: d3
+        .scaleLinear()
+        .domain([0, maxWeekly || 1])
+        .range([4, 52]),
+    };
+  }, [dailyTotals, weeklyTotals]);
 
   const rows = useMemo(() => buildCalendarRows(month), [month]);
 
@@ -248,7 +254,7 @@ export function CalendarHeatmap({
                     />
                   );
                 }
-                const isToday = cell.date === TODAY;
+                const isToday = cell.date === today;
                 const amount = dailyTotals[cell.date] ?? 0;
                 const radius = amount > 0 ? circleScale(amount) : 0;
 
