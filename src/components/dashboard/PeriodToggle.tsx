@@ -33,7 +33,7 @@ export function PeriodToggle({
                   color: "#E4E8F5",
                 }
               : {
-                  color: "rgba(228,232,245,0.35)",
+                  color: "rgba(228,232,245,0.55)",
                 }
           }
         >

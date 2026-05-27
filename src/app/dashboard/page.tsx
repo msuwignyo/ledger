@@ -41,7 +41,7 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-5 max-w-5xl">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold" style={{ color: "#E4E8F5" }}>
+        <h1 className="text-xl font-semibold" style={{ color: "#F0F2FA" }}>
           Overview
         </h1>
         <PeriodToggle value={period} onChangeAction={setPeriod} />
