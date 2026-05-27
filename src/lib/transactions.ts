@@ -30,8 +30,8 @@ function getPeriodLabel(dateStr: string, period: Period): string {
     return d.toLocaleString("en-US", { month: "short", year: "numeric" });
   }
   if (period === "weekly") {
-    const weekNum = getISOWeek(d);
-    return `Week ${weekNum} ${d.getFullYear()}`;
+    const weekNum = String(getISOWeek(d)).padStart(2, "0");
+    return `${d.getFullYear()}-W${weekNum}`;
   }
   // daily
   return dateStr;

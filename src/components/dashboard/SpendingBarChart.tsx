@@ -2,15 +2,33 @@
 
 import * as d3 from "d3";
 import { useEffect, useRef } from "react";
-import type { GroupedSpending } from "@/lib/types";
+import type { GroupedSpending, Period } from "@/lib/types";
 
-export function SpendingBarChart({ data }: { data: GroupedSpending[] }) {
+function formatLabel(label: string): string {
+  if (/^\d{4}-W\d{2}$/.test(label)) {
+    return `Wk ${Number(label.slice(-2))}`;
+  }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(label)) {
+    const d = new Date(`${label}T12:00:00`);
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  }
+  return label;
+}
+
+export function SpendingBarChart({
+  data,
+  period,
+}: {
+  data: GroupedSpending[];
+  period: Period;
+}) {
   const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
     if (!svgRef.current || data.length === 0) return;
 
-    const margin = { top: 16, right: 16, bottom: 40, left: 64 };
+    const rotate = period === "daily" || period === "weekly";
+    const margin = { top: 16, right: 16, bottom: rotate ? 64 : 40, left: 64 };
     const width = svgRef.current.clientWidth - margin.left - margin.right;
     const height = 240 - margin.top - margin.bottom;
 
@@ -61,16 +79,39 @@ export function SpendingBarChart({ data }: { data: GroupedSpending[] }) {
       .attr("fill", "#6366f1")
       .attr("rx", 3);
 
-    // X axis
-    svg
+    // X axis — skip ticks when too dense (daily with many bars)
+    const everyN =
+      period === "daily" && data.length > 14 ? Math.ceil(data.length / 14) : 1;
+    const xAxis = svg
       .append("g")
       .attr("transform", `translate(0,${height})`)
-      .call(d3.axisBottom(x).tickSize(0))
-      .call((g) => g.select(".domain").remove())
-      .selectAll("text")
-      .attr("fill", "#71717a")
-      .attr("font-size", "11px")
-      .attr("dy", "1.2em");
+      .call(
+        d3
+          .axisBottom(x)
+          .tickSize(0)
+          .tickValues(
+            data.filter((_, i) => i % everyN === 0).map((d) => d.label),
+          )
+          .tickFormat((label) => formatLabel(String(label))),
+      )
+      .call((g) => g.select(".domain").remove());
+
+    if (rotate) {
+      xAxis
+        .selectAll("text")
+        .attr("fill", "#71717a")
+        .attr("font-size", "11px")
+        .attr("text-anchor", "end")
+        .attr("dx", "-0.5em")
+        .attr("dy", "0.3em")
+        .attr("transform", "rotate(-45)");
+    } else {
+      xAxis
+        .selectAll("text")
+        .attr("fill", "#71717a")
+        .attr("font-size", "11px")
+        .attr("dy", "1.2em");
+    }
 
     // Y axis
     svg
@@ -91,7 +132,7 @@ export function SpendingBarChart({ data }: { data: GroupedSpending[] }) {
       .selectAll("text")
       .attr("fill", "#71717a")
       .attr("font-size", "11px");
-  }, [data]);
+  }, [data, period]);
 
   if (data.length === 0) {
     return (
