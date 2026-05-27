@@ -11,6 +11,11 @@ export default function TransactionsPage() {
 
   useEffect(() => {
     setTransactions(getTransactions());
+    function refresh() {
+      setTransactions(getTransactions());
+    }
+    window.addEventListener("ledger:updated", refresh);
+    return () => window.removeEventListener("ledger:updated", refresh);
   }, []);
 
   useEffect(() => {

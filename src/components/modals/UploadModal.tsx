@@ -129,6 +129,7 @@ export function UploadModal({
       incoming,
     );
     saveTransactions([...existing, ...newTransactions]);
+    window.dispatchEvent(new CustomEvent("ledger:updated"));
 
     setState({
       status: "done",
