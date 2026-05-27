@@ -16,17 +16,26 @@ export function PeriodToggle({
   onChangeAction: (p: Period) => void;
 }) {
   return (
-    <div className="flex gap-1 bg-zinc-100 p-1 rounded-full">
+    <div
+      className="flex gap-0.5 p-1 rounded-lg"
+      style={{ background: "rgba(255,255,255,0.05)" }}
+    >
       {OPTIONS.map((opt) => (
         <button
           key={opt.value}
           type="button"
           onClick={() => onChangeAction(opt.value)}
-          className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+          className="px-3.5 py-1.5 rounded-md text-sm font-medium transition-all"
+          style={
             value === opt.value
-              ? "bg-white text-zinc-900 shadow-sm"
-              : "text-zinc-500 hover:text-zinc-700"
-          }`}
+              ? {
+                  background: "rgba(255,255,255,0.10)",
+                  color: "#E4E8F5",
+                }
+              : {
+                  color: "rgba(228,232,245,0.35)",
+                }
+          }
         >
           {opt.label}
         </button>

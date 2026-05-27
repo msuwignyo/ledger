@@ -150,19 +150,27 @@ export function UploadModal({
       role="dialog"
       aria-modal="true"
       aria-label="Upload Statement"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ background: "rgba(0,0,0,0.75)" }}
       onClick={(e) => e.target === e.currentTarget && handleClose()}
       onKeyDown={(e) => e.key === "Escape" && handleClose()}
     >
-      <div className="mx-4 w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+      <div
+        className="mx-4 w-full max-w-md rounded-2xl p-6 shadow-2xl"
+        style={{
+          background: "#111722",
+          border: "1px solid rgba(255,255,255,0.09)",
+        }}
+      >
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-zinc-900">
+          <h2 className="text-base font-semibold" style={{ color: "#E4E8F5" }}>
             Upload Statement
           </h2>
           <button
             type="button"
             onClick={handleClose}
-            className="text-xl leading-none text-zinc-400 hover:text-zinc-600"
+            className="text-xl leading-none transition-colors"
+            style={{ color: "#3D4465" }}
           >
             ×
           </button>
@@ -173,7 +181,8 @@ export function UploadModal({
             <div className="mb-4">
               <label
                 htmlFor="bank-select"
-                className="mb-1 block text-sm font-medium text-zinc-700"
+                className="mb-1.5 block text-xs uppercase tracking-wider font-medium"
+                style={{ color: "#3D4465" }}
               >
                 Bank
               </label>
@@ -181,10 +190,19 @@ export function UploadModal({
                 id="bank-select"
                 value={bank}
                 onChange={(e) => setBank(e.target.value as BankName)}
-                className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none"
+                style={{
+                  background: "#192030",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  color: "#9AA0BE",
+                }}
               >
                 {BANKS.map((b) => (
-                  <option key={b.value} value={b.value}>
+                  <option
+                    key={b.value}
+                    value={b.value}
+                    style={{ background: "#192030" }}
+                  >
                     {b.label}
                   </option>
                 ))}
@@ -205,13 +223,20 @@ export function UploadModal({
                 if (file) handleFile(file);
               }}
               onClick={() => inputRef.current?.click()}
-              className={`w-full cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition-colors ${
+              className="w-full cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition-all"
+              style={
                 dragging
-                  ? "border-indigo-500 bg-indigo-50"
-                  : "border-zinc-300 hover:border-zinc-400"
-              }`}
+                  ? {
+                      borderColor: "#F5A623",
+                      background: "rgba(245,166,35,0.07)",
+                    }
+                  : {
+                      borderColor: "rgba(255,255,255,0.08)",
+                      background: "transparent",
+                    }
+              }
             >
-              <p className="text-sm text-zinc-500">
+              <p className="text-sm" style={{ color: "#5C6280" }}>
                 Drag & drop a PDF here, or click to select
               </p>
               <input
@@ -230,8 +255,11 @@ export function UploadModal({
 
         {(state.status === "extracting" || state.status === "parsing") && (
           <div className="flex flex-col items-center gap-3 py-8">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
-            <p className="text-sm text-zinc-600">
+            <div
+              className="h-7 w-7 animate-spin rounded-full border-2 border-t-transparent"
+              style={{ borderColor: "#F5A623", borderTopColor: "transparent" }}
+            />
+            <p className="text-sm" style={{ color: "#5C6280" }}>
               {state.status === "extracting"
                 ? "Extracting text from PDF..."
                 : "Asking Claude to find transactions..."}
@@ -241,20 +269,26 @@ export function UploadModal({
 
         {state.status === "done" && (
           <div className="py-6 text-center">
-            <p className="mb-2 text-2xl">✓</p>
-            <p className="font-medium text-zinc-800">
+            <p
+              className="mb-2 text-2xl font-mono font-bold"
+              style={{ color: "#4ADE80" }}
+            >
+              ✓
+            </p>
+            <p className="font-medium" style={{ color: "#C8CCDF" }}>
               {state.added} transaction{state.added !== 1 ? "s" : ""} added.
             </p>
             {state.duplicates > 0 && (
-              <p className="mt-1 text-sm text-zinc-500">
-                {state.duplicates} duplicate{state.duplicates !== 1 ? "s" : ""}{" "}
-                skipped.
+              <p className="mt-1 text-sm" style={{ color: "#5C6280" }}>
+                {state.duplicates} duplicate
+                {state.duplicates !== 1 ? "s" : ""} skipped.
               </p>
             )}
             <button
               type="button"
               onClick={handleClose}
-              className="mt-4 rounded-lg bg-indigo-600 px-6 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+              className="mt-5 rounded-lg px-6 py-2 text-sm font-medium transition-opacity hover:opacity-90"
+              style={{ background: "#F5A623", color: "#07090e" }}
             >
               Done
             </button>
@@ -263,13 +297,22 @@ export function UploadModal({
 
         {state.status === "error" && (
           <div className="py-4">
-            <p className="mb-2 text-sm font-medium text-red-600">
+            <p
+              className="mb-2 text-sm font-medium"
+              style={{ color: "#F87171" }}
+            >
               {state.message}
             </p>
             {state.raw && (
-              <details className="text-xs text-zinc-500">
+              <details className="text-xs" style={{ color: "#5C6280" }}>
                 <summary className="cursor-pointer">View raw response</summary>
-                <pre className="mt-2 max-h-40 overflow-auto rounded bg-zinc-100 p-2">
+                <pre
+                  className="mt-2 max-h-40 overflow-auto rounded-lg p-2 text-xs"
+                  style={{
+                    background: "#0F1520",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                  }}
+                >
                   {state.raw}
                 </pre>
               </details>
@@ -277,7 +320,8 @@ export function UploadModal({
             <button
               type="button"
               onClick={() => setState({ status: "idle" })}
-              className="mt-4 text-sm text-indigo-600 underline"
+              className="mt-4 text-sm underline"
+              style={{ color: "#F5A623" }}
             >
               Try again
             </button>

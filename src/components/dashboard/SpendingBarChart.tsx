@@ -63,7 +63,9 @@ export function SpendingBarChart({
           .tickFormat(() => ""),
       )
       .call((g) => g.select(".domain").remove())
-      .call((g) => g.selectAll(".tick line").attr("stroke", "#e4e4e7"));
+      .call((g) =>
+        g.selectAll(".tick line").attr("stroke", "rgba(255,255,255,0.05)"),
+      );
 
     // Bars
     svg
@@ -76,7 +78,7 @@ export function SpendingBarChart({
       .attr("y", (d) => y(d.total))
       .attr("width", x.bandwidth())
       .attr("height", (d) => height - y(d.total))
-      .attr("fill", "#6366f1")
+      .attr("fill", "#4E82F7")
       .attr("rx", 3);
 
     // X axis — skip ticks when too dense (daily with many bars)
@@ -99,7 +101,7 @@ export function SpendingBarChart({
     if (rotate) {
       xAxis
         .selectAll("text")
-        .attr("fill", "#71717a")
+        .attr("fill", "#3D4465")
         .attr("font-size", "11px")
         .attr("text-anchor", "end")
         .attr("dx", "-0.5em")
@@ -108,7 +110,7 @@ export function SpendingBarChart({
     } else {
       xAxis
         .selectAll("text")
-        .attr("fill", "#71717a")
+        .attr("fill", "#3D4465")
         .attr("font-size", "11px")
         .attr("dy", "1.2em");
     }
@@ -130,7 +132,7 @@ export function SpendingBarChart({
       .call((g) => g.select(".domain").remove())
       .call((g) => g.selectAll(".tick line").remove())
       .selectAll("text")
-      .attr("fill", "#71717a")
+      .attr("fill", "#3D4465")
       .attr("font-size", "11px");
   }, [data, period]);
 

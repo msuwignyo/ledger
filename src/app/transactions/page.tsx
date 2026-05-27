@@ -34,7 +34,9 @@ export default function TransactionsPage() {
 
   return (
     <div className="flex flex-col gap-6 max-w-5xl">
-      <h1 className="text-2xl font-bold text-zinc-900">Transactions</h1>
+      <h1 className="text-xl font-semibold" style={{ color: "#E4E8F5" }}>
+        Transactions
+      </h1>
       <TransactionTable
         transactions={transactions}
         onCategoryChangeAction={handleCategoryChange}

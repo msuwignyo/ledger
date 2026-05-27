@@ -64,7 +64,9 @@ export function FrequencyChart({
           .tickFormat(() => ""),
       )
       .call((g) => g.select(".domain").remove())
-      .call((g) => g.selectAll(".tick line").attr("stroke", "#e4e4e7"));
+      .call((g) =>
+        g.selectAll(".tick line").attr("stroke", "rgba(255,255,255,0.05)"),
+      );
 
     // Line connecting dots
     const line = d3
@@ -77,7 +79,7 @@ export function FrequencyChart({
       .append("path")
       .datum(data)
       .attr("fill", "none")
-      .attr("stroke", "#a5b4fc")
+      .attr("stroke", "#F5A623")
       .attr("stroke-width", 1.5)
       .attr("d", line);
 
@@ -91,8 +93,8 @@ export function FrequencyChart({
       .attr("cx", (d) => (x(d.label) ?? 0) + x.bandwidth() / 2)
       .attr("cy", (d) => y(d.count))
       .attr("r", 4)
-      .attr("fill", "#6366f1")
-      .attr("fill-opacity", 0.8);
+      .attr("fill", "#F5A623")
+      .attr("fill-opacity", 0.9);
 
     // X axis
     const everyN =
@@ -114,7 +116,7 @@ export function FrequencyChart({
     if (rotate) {
       xAxis
         .selectAll("text")
-        .attr("fill", "#71717a")
+        .attr("fill", "#3D4465")
         .attr("font-size", "11px")
         .attr("text-anchor", "end")
         .attr("dx", "-0.5em")
@@ -123,7 +125,7 @@ export function FrequencyChart({
     } else {
       xAxis
         .selectAll("text")
-        .attr("fill", "#71717a")
+        .attr("fill", "#3D4465")
         .attr("font-size", "11px")
         .attr("dy", "1.2em");
     }
@@ -135,7 +137,7 @@ export function FrequencyChart({
       .call((g) => g.select(".domain").remove())
       .call((g) => g.selectAll(".tick line").remove())
       .selectAll("text")
-      .attr("fill", "#71717a")
+      .attr("fill", "#3D4465")
       .attr("font-size", "11px");
   }, [data, period]);
 

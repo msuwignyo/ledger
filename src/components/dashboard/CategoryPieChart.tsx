@@ -5,14 +5,14 @@ import { useEffect, useRef } from "react";
 import type { CategorySpending } from "@/lib/types";
 
 const COLORS = [
-  "#6366f1",
-  "#f59e0b",
-  "#10b981",
-  "#f43f5e",
-  "#a78bfa",
-  "#34d399",
-  "#fb923c",
-  "#60a5fa",
+  "#4E82F7",
+  "#F5A623",
+  "#34D399",
+  "#F472B6",
+  "#A78BFA",
+  "#38BDF8",
+  "#FB923C",
+  "#4ADE80",
 ];
 
 export function CategoryPieChart({ data }: { data: CategorySpending[] }) {
@@ -23,7 +23,7 @@ export function CategoryPieChart({ data }: { data: CategorySpending[] }) {
 
     const size = 200;
     const radius = size / 2;
-    const innerRadius = radius * 0.55;
+    const innerRadius = radius * 0.58;
 
     d3.select(svgRef.current).selectAll("*").remove();
 
@@ -37,11 +37,14 @@ export function CategoryPieChart({ data }: { data: CategorySpending[] }) {
     const pie = d3
       .pie<CategorySpending>()
       .value((d) => d.total)
-      .sort(null);
+      .sort(null)
+      .padAngle(0.025);
+
     const arc = d3
       .arc<d3.PieArcDatum<CategorySpending>>()
       .innerRadius(innerRadius)
-      .outerRadius(radius - 4);
+      .outerRadius(radius - 2)
+      .cornerRadius(2);
 
     const arcs = svg.selectAll(".arc").data(pie(data)).enter().append("g");
 
@@ -49,13 +52,16 @@ export function CategoryPieChart({ data }: { data: CategorySpending[] }) {
       .append("path")
       .attr("d", arc)
       .attr("fill", (_, i) => COLORS[i % COLORS.length])
-      .attr("stroke", "white")
-      .attr("stroke-width", 2);
+      .attr("stroke", "#111722")
+      .attr("stroke-width", 1.5);
   }, [data]);
 
   if (data.length === 0) {
     return (
-      <div className="flex h-40 items-center justify-center text-sm text-zinc-400">
+      <div
+        className="flex h-40 items-center justify-center text-sm"
+        style={{ color: "#3D4465" }}
+      >
         No data
       </div>
     );
@@ -64,17 +70,22 @@ export function CategoryPieChart({ data }: { data: CategorySpending[] }) {
   const total = data.reduce((s, d) => s + d.total, 0);
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-5">
       <svg ref={svgRef} />
-      <div className="w-full flex flex-col gap-1">
+      <div className="w-full flex flex-col gap-2">
         {data.slice(0, 5).map((d, i) => (
-          <div key={d.category} className="flex items-center gap-2 text-xs">
+          <div key={d.category} className="flex items-center gap-2.5 text-xs">
             <span
-              className="w-2.5 h-2.5 rounded-sm shrink-0"
+              className="w-2 h-2 rounded-sm shrink-0"
               style={{ background: COLORS[i % COLORS.length] }}
             />
-            <span className="text-zinc-600 truncate flex-1">{d.category}</span>
-            <span className="text-zinc-500">
+            <span className="truncate flex-1" style={{ color: "#7A80A0" }}>
+              {d.category}
+            </span>
+            <span
+              className="font-mono font-medium"
+              style={{ color: "#9AA0BE" }}
+            >
               {total > 0 ? Math.round((d.total / total) * 100) : 0}%
             </span>
           </div>

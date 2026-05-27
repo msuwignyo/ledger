@@ -18,12 +18,19 @@ export function CategoryDropdown({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="text-sm text-indigo-600 hover:text-indigo-800 underline underline-offset-2"
+        className="text-sm font-medium transition-colors"
+        style={{ color: "#F5A623" }}
       >
         {value}
       </button>
       {open && (
-        <div className="absolute z-10 mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg min-w-40 py-1">
+        <div
+          className="absolute z-10 mt-1 rounded-lg py-1 min-w-44 shadow-xl"
+          style={{
+            background: "#192030",
+            border: "1px solid rgba(255,255,255,0.10)",
+          }}
+        >
           {categories.map((cat) => (
             <button
               key={cat}
@@ -32,9 +39,17 @@ export function CategoryDropdown({
                 onChangeAction(cat);
                 setOpen(false);
               }}
-              className={`w-full text-left px-3 py-1.5 text-sm hover:bg-zinc-50 ${
-                cat === value ? "text-indigo-600 font-medium" : "text-zinc-700"
-              }`}
+              className="w-full text-left px-3 py-2 text-sm transition-colors"
+              style={{
+                color: cat === value ? "#F5A623" : "#7A80A0",
+                fontWeight: cat === value ? 500 : 400,
+              }}
+              onMouseEnter={(e) => {
+                if (cat !== value) e.currentTarget.style.color = "#C8CCDF";
+              }}
+              onMouseLeave={(e) => {
+                if (cat !== value) e.currentTarget.style.color = "#7A80A0";
+              }}
             >
               {cat}
             </button>

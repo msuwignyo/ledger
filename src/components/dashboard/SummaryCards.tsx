@@ -16,27 +16,61 @@ export function SummaryCards({
     computeSummary(transactions);
 
   return (
-    <div className="grid grid-cols-3 gap-4">
-      <div className="bg-white rounded-xl border border-zinc-200 p-4">
-        <p className="text-xs text-zinc-400 uppercase tracking-wide mb-1">
-          Total Spent
-        </p>
-        <p className="text-2xl font-bold text-zinc-900">
-          {formatIDR(totalExpense)}
-        </p>
-      </div>
-      <div className="bg-white rounded-xl border border-zinc-200 p-4">
-        <p className="text-xs text-zinc-400 uppercase tracking-wide mb-1">
-          Transactions
-        </p>
-        <p className="text-2xl font-bold text-zinc-900">{transactionCount}</p>
-      </div>
-      <div className="bg-white rounded-xl border border-zinc-200 p-4">
-        <p className="text-xs text-zinc-400 uppercase tracking-wide mb-1">
-          Top Category
-        </p>
-        <p className="text-2xl font-bold text-zinc-900">{topCategory}</p>
-      </div>
+    <div className="grid grid-cols-3 gap-3">
+      <Card>
+        <Label>Total Spent</Label>
+        <Value accent>{formatIDR(totalExpense)}</Value>
+      </Card>
+      <Card>
+        <Label>Transactions</Label>
+        <Value>{transactionCount}</Value>
+      </Card>
+      <Card>
+        <Label>Top Category</Label>
+        <Value>{topCategory}</Value>
+      </Card>
     </div>
+  );
+}
+
+function Card({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className="rounded-xl p-5"
+      style={{
+        background: "#111722",
+        border: "1px solid rgba(255,255,255,0.07)",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function Label({ children }: { children: React.ReactNode }) {
+  return (
+    <p
+      className="text-xs uppercase tracking-widest mb-2 font-medium"
+      style={{ color: "#444A6A" }}
+    >
+      {children}
+    </p>
+  );
+}
+
+function Value({
+  children,
+  accent,
+}: {
+  children: React.ReactNode;
+  accent?: boolean;
+}) {
+  return (
+    <p
+      className="text-2xl font-bold leading-none font-mono"
+      style={{ color: accent ? "#F5A623" : "#E4E8F5" }}
+    >
+      {children}
+    </p>
   );
 }

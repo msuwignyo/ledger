@@ -33,7 +33,8 @@ function SortHeader({
   return (
     <th
       aria-sort={active ? (dir === "asc" ? "ascending" : "descending") : "none"}
-      className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wide cursor-pointer select-none hover:text-zinc-700"
+      className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer select-none transition-colors"
+      style={{ color: active ? "#9AA0BE" : "#3D4465" }}
       onClick={() => onSortAction(col)}
       onKeyDown={(e) =>
         (e.key === "Enter" || e.key === " ") && onSortAction(col)
@@ -102,7 +103,8 @@ export function TransactionTable({
         <div>
           <label
             htmlFor="filter-start"
-            className="block text-xs text-zinc-500 mb-1"
+            className="block text-xs uppercase tracking-wider mb-1.5 font-medium"
+            style={{ color: "#3D4465" }}
           >
             From
           </label>
@@ -111,13 +113,20 @@ export function TransactionTable({
             type="date"
             value={filterStart}
             onChange={(e) => setFilterStart(e.target.value)}
-            className="border border-zinc-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="rounded-lg px-3 py-1.5 text-sm focus:outline-none"
+            style={{
+              background: "#192030",
+              border: "1px solid rgba(255,255,255,0.08)",
+              color: "#9AA0BE",
+              colorScheme: "dark",
+            }}
           />
         </div>
         <div>
           <label
             htmlFor="filter-end"
-            className="block text-xs text-zinc-500 mb-1"
+            className="block text-xs uppercase tracking-wider mb-1.5 font-medium"
+            style={{ color: "#3D4465" }}
           >
             To
           </label>
@@ -126,13 +135,20 @@ export function TransactionTable({
             type="date"
             value={filterEnd}
             onChange={(e) => setFilterEnd(e.target.value)}
-            className="border border-zinc-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="rounded-lg px-3 py-1.5 text-sm focus:outline-none"
+            style={{
+              background: "#192030",
+              border: "1px solid rgba(255,255,255,0.08)",
+              color: "#9AA0BE",
+              colorScheme: "dark",
+            }}
           />
         </div>
         <div>
           <label
             htmlFor="filter-category"
-            className="block text-xs text-zinc-500 mb-1"
+            className="block text-xs uppercase tracking-wider mb-1.5 font-medium"
+            style={{ color: "#3D4465" }}
           >
             Category
           </label>
@@ -140,26 +156,37 @@ export function TransactionTable({
             id="filter-category"
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="border border-zinc-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="rounded-lg px-3 py-1.5 text-sm focus:outline-none"
+            style={{
+              background: "#192030",
+              border: "1px solid rgba(255,255,255,0.08)",
+              color: "#9AA0BE",
+            }}
           >
             {categories.map((c) => (
-              <option key={c} value={c}>
+              <option key={c} value={c} style={{ background: "#192030" }}>
                 {c === "all" ? "All categories" : c}
               </option>
             ))}
           </select>
         </div>
-        <p className="text-sm text-zinc-400 pb-1.5">
+        <p className="text-sm pb-1.5 font-mono" style={{ color: "#3D4465" }}>
           {filtered.length} transactions
         </p>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-zinc-200 overflow-hidden">
+      <div
+        className="rounded-xl overflow-hidden"
+        style={{
+          background: "#111722",
+          border: "1px solid rgba(255,255,255,0.07)",
+        }}
+      >
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-zinc-50 border-b border-zinc-200">
-              <tr>
+            <thead style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <tr style={{ background: "#0F1520" }}>
                 <SortHeader
                   col="date"
                   label="Date"
@@ -195,34 +222,55 @@ export function TransactionTable({
                   dir={sortDir}
                   onSortAction={handleSort}
                 />
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wide">
+                <th
+                  className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider"
+                  style={{ color: "#3D4465" }}
+                >
                   Source
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100">
+            <tbody>
               {filtered.length === 0 ? (
                 <tr>
                   <td
                     colSpan={6}
-                    className="px-4 py-8 text-center text-zinc-400 text-sm"
+                    className="px-4 py-10 text-center text-sm"
+                    style={{ color: "#3D4465" }}
                   >
                     No transactions found.
                   </td>
                 </tr>
               ) : (
                 filtered.map((tx) => (
-                  <tr key={tx.id} className="hover:bg-zinc-50">
-                    <td className="px-4 py-3 text-sm text-zinc-600 whitespace-nowrap">
+                  <tr
+                    key={tx.id}
+                    style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background =
+                        "rgba(255,255,255,0.025)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "transparent";
+                    }}
+                  >
+                    <td
+                      className="px-4 py-3 text-sm whitespace-nowrap font-mono"
+                      style={{ color: "#5C6280" }}
+                    >
                       {tx.date}
                     </td>
-                    <td className="px-4 py-3 text-sm text-zinc-800 max-w-xs truncate">
+                    <td
+                      className="px-4 py-3 text-sm max-w-xs truncate"
+                      style={{ color: "#C8CCDF" }}
+                    >
                       {tx.description}
                     </td>
                     <td
-                      className={`px-4 py-3 text-sm font-medium whitespace-nowrap ${
-                        tx.amount < 0 ? "text-red-600" : "text-emerald-600"
-                      }`}
+                      className="px-4 py-3 text-sm font-medium whitespace-nowrap font-mono"
+                      style={{
+                        color: tx.amount < 0 ? "#F87171" : "#4ADE80",
+                      }}
                     >
                       {formatIDR(tx.amount)}
                     </td>
@@ -234,10 +282,16 @@ export function TransactionTable({
                         }
                       />
                     </td>
-                    <td className="px-4 py-3 text-sm text-zinc-500 uppercase">
+                    <td
+                      className="px-4 py-3 text-xs uppercase tracking-wider font-medium"
+                      style={{ color: "#4A5070" }}
+                    >
                       {tx.bank}
                     </td>
-                    <td className="px-4 py-3 text-xs text-zinc-400 max-w-xs truncate">
+                    <td
+                      className="px-4 py-3 text-xs max-w-xs truncate"
+                      style={{ color: "#3D4465" }}
+                    >
                       {tx.sourceFile}
                     </td>
                   </tr>
