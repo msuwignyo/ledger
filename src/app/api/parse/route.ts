@@ -3,22 +3,59 @@ import { type NextRequest, NextResponse } from "next/server";
 
 const client = new Anthropic();
 
-const SYSTEM_PROMPT = `You are a financial data extractor. The user will provide raw text extracted from an Indonesian bank statement PDF. Extract all debit/credit transactions and return them as a JSON array.
-
-Each transaction object must have exactly these fields:
-- date: string (ISO 8601 format, e.g. "2026-04-15")
-- description: string (merchant name or transaction description, keep it concise)
-- amount: number (negative for expenses/debits, positive for credits/refunds, in IDR)
-- category: string (one of: Dining, Groceries, Transport, Shopping, Bills & Utilities, Health, Entertainment, Travel, Other)
+const SYSTEM_PROMPT = `You are a financial data extractor. The user will provide raw text extracted from an Indonesian bank statement PDF. Extract all debit/credit transactions and call the extract_transactions tool with the results.
 
 Rules:
 - Skip header rows, balance summaries, and non-transaction lines
 - For transfers, use the recipient/sender name as description
 - Infer category from the description (e.g. Grab/Gojek = Transport, Indomaret/Alfamart = Groceries)
-- Return ONLY valid JSON — no markdown, no explanation, just the array
+- Amounts are in IDR: negative for expenses/debits, positive for credits/refunds`;
 
-Example output:
-[{"date":"2026-04-15","description":"Grab","amount":-23000,"category":"Transport"}]`;
+const EXTRACT_TOOL: Anthropic.Tool = {
+  name: "extract_transactions",
+  description: "Return all transactions extracted from the bank statement",
+  input_schema: {
+    type: "object",
+    properties: {
+      transactions: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            date: {
+              type: "string",
+              description: "ISO 8601 date, e.g. 2026-04-15",
+            },
+            description: {
+              type: "string",
+              description: "Merchant name or transaction description",
+            },
+            amount: {
+              type: "number",
+              description: "Negative for debits, positive for credits, in IDR",
+            },
+            category: {
+              type: "string",
+              enum: [
+                "Dining",
+                "Groceries",
+                "Transport",
+                "Shopping",
+                "Bills & Utilities",
+                "Health",
+                "Entertainment",
+                "Travel",
+                "Other",
+              ],
+            },
+          },
+          required: ["date", "description", "amount", "category"],
+        },
+      },
+    },
+    required: ["transactions"],
+  },
+};
 
 export async function POST(request: NextRequest) {
   if (!process.env.ANTHROPIC_API_KEY) {
@@ -50,27 +87,20 @@ export async function POST(request: NextRequest) {
       model: "claude-haiku-4-5-20251001",
       max_tokens: 4096,
       system: SYSTEM_PROMPT,
+      tools: [EXTRACT_TOOL],
+      tool_choice: { type: "any" },
       messages: [{ role: "user", content: userMessage }],
     });
 
-    const rawContent = message.content[0];
-    if (rawContent.type !== "text") {
+    const toolUse = message.content.find((b) => b.type === "tool_use");
+    if (!toolUse || toolUse.type !== "tool_use") {
       return NextResponse.json(
-        { error: "Unexpected response type from Claude" },
-        { status: 500 },
-      );
-    }
-
-    let transactions: unknown;
-    try {
-      transactions = JSON.parse(rawContent.text);
-    } catch {
-      return NextResponse.json(
-        { error: "Claude returned malformed JSON", raw: rawContent.text },
+        { error: "Claude did not call the extraction tool" },
         { status: 422 },
       );
     }
 
+    const { transactions } = toolUse.input as { transactions: unknown };
     return NextResponse.json({ transactions });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
