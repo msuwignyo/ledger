@@ -33,10 +33,15 @@ export default function TransactionsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-5xl">
-      <h1 className="text-xl font-semibold" style={{ color: "#E4E8F5" }}>
-        Transactions
-      </h1>
+    <div className="page">
+      <div className="chapter">
+        <div>
+          <div className="chapter__eyebrow">Chapter II · The Day Book</div>
+          <h1 className="chapter__title">Transactions</h1>
+          <div className="chapter__sub">every entry, posted and dated</div>
+        </div>
+      </div>
+      <hr className="fleuron-rule" />
       <TransactionTable
         transactions={transactions}
         onCategoryChangeAction={handleCategoryChange}
