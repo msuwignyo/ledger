@@ -6,8 +6,7 @@
    so the blog can keep reading like printed pages even though it's a SPA.
    ============================================================================ */
 
-/* ----- Fonts (Google Fonts CDN; see /fonts for local fallbacks) ------------ */
-@import url("https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500;600&display=swap");
+/* Fonts loaded via globals.css (must precede all other @import rules) */
 
 :root {
   /* ---------- Stone scale (Tailwind, the codebase's base) ----------------- */
