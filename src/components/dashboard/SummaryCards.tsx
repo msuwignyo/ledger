@@ -30,7 +30,7 @@ export function SummaryCards({ transactions }: { transactions: Transaction[] }) 
       </div>
       <div className="summary__cell">
         <div className="summary__label">Most frequent</div>
-        <div className="summary__value" style={{ fontSize: 30 }}>
+        <div className="summary__value name">
           {topCategory || "—"}
         </div>
         <div className="summary__meta">your busiest ledger line</div>

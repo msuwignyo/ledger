@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { deduplicateTransactions } from "@/lib/dedup";
 import { getTransactions, saveTransactions } from "@/lib/storage";
 import type { BankName, Transaction } from "@/lib/types";
@@ -126,6 +126,16 @@ export function UploadModal({
     onCloseAction();
   }
 
+  useEffect(() => {
+    if (!open) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") handleClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   if (!open) return null;
 
   const isProcessing = state.status === "extracting" || state.status === "parsing";
@@ -135,7 +145,6 @@ export function UploadModal({
     <div
       className="overlay"
       onMouseDown={(e) => e.target === e.currentTarget && handleClose()}
-      onKeyDown={(e) => e.key === "Escape" && handleClose()}
       role="dialog"
       aria-modal="true"
       aria-label="Upload Statement"

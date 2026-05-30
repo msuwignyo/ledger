@@ -27,6 +27,8 @@ export function CategoryPieChart({ data }: { data: CategorySpending[] }) {
   useEffect(() => {
     if (!svgRef.current || data.length === 0) return;
 
+    const bgElev = getComputedStyle(document.documentElement).getPropertyValue("--bg-elev").trim() || "#fbf7ee";
+
     const size = 190;
     const radius = size / 2;
     const innerRadius = radius * 0.6;
@@ -58,7 +60,7 @@ export function CategoryPieChart({ data }: { data: CategorySpending[] }) {
       .append("path")
       .attr("d", arc)
       .attr("fill", (_, i) => COLORS[i % COLORS.length])
-      .attr("stroke", "#fbf7ee")
+      .attr("stroke", bgElev)
       .attr("stroke-width", 2);
   }, [data]);
 

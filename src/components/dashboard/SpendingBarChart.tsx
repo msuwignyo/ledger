@@ -27,6 +27,11 @@ export function SpendingBarChart({
   useEffect(() => {
     if (!svgRef.current || data.length === 0) return;
 
+    const cs = getComputedStyle(document.documentElement);
+    const accent = cs.getPropertyValue("--accent").trim() || "#8b2c1d";
+    const inkFaint = cs.getPropertyValue("--ink-faint").trim() || "#8a7e6e";
+    const ruleSoft = cs.getPropertyValue("--rule-soft").trim() || "#e3d9c4";
+
     const rotate = period === "daily" || period === "weekly";
     const margin = { top: 16, right: 16, bottom: rotate ? 64 : 40, left: 64 };
     const width = svgRef.current.clientWidth - margin.left - margin.right;
@@ -64,7 +69,7 @@ export function SpendingBarChart({
       )
       .call((g) => g.select(".domain").remove())
       .call((g) =>
-        g.selectAll(".tick line").attr("stroke", "#e3d9c4"),
+        g.selectAll(".tick line").attr("stroke", ruleSoft),
       );
 
     // Bars
@@ -78,7 +83,7 @@ export function SpendingBarChart({
       .attr("y", (d) => y(d.total))
       .attr("width", x.bandwidth())
       .attr("height", (d) => height - y(d.total))
-      .attr("fill", "#8b2c1d")
+      .attr("fill", accent)
       .attr("fill-opacity", 0.88)
       .attr("rx", 1);
 
@@ -102,7 +107,7 @@ export function SpendingBarChart({
     if (rotate) {
       xAxis
         .selectAll("text")
-        .attr("fill", "#8a7e6e")
+        .attr("fill", inkFaint)
         .attr("font-size", "11px")
         .attr("text-anchor", "end")
         .attr("dx", "-0.5em")
@@ -111,7 +116,7 @@ export function SpendingBarChart({
     } else {
       xAxis
         .selectAll("text")
-        .attr("fill", "#8a7e6e")
+        .attr("fill", inkFaint)
         .attr("font-size", "11px")
         .attr("dy", "1.2em");
     }
@@ -133,7 +138,7 @@ export function SpendingBarChart({
       .call((g) => g.select(".domain").remove())
       .call((g) => g.selectAll(".tick line").remove())
       .selectAll("text")
-      .attr("fill", "#8a7e6e")
+      .attr("fill", inkFaint)
       .attr("font-size", "11px");
   }, [data, period]);
 

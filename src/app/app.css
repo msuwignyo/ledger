@@ -279,6 +279,7 @@ html, body {
 }
 .summary__value .cur { font-size: 20px; color: var(--ink-faint); margin-right: 3px; }
 .summary__value.accent { color: var(--accent); }
+.summary__value.name { font-size: 30px; }
 .summary__meta {
   margin-top: 9px;
   font-family: var(--font-display);
