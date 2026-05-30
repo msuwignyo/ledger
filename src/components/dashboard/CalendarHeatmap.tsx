@@ -65,10 +65,8 @@ function buildCalendarRows(month: string): CalendarCell[][] {
 export function CalendarHeatmap({ transactions }: { transactions: Transaction[] }) {
   const [month, setMonth] = useState(getCurrentMonth);
 
-  const today = useMemo(() => {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-  }, []);
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
   const dailyTotals = useMemo(
     () => getDailyTotals(transactions, month),
@@ -174,22 +172,11 @@ export function CalendarHeatmap({ transactions }: { transactions: Transaction[] 
 
       <div className="cal__legend">
         <span>
-          <svg width="16" height="16">
-            <circle cx="8" cy="8" r="6" fill="rgba(139,44,29,0.16)" stroke="#8b2c1d" strokeWidth="1.4" />
-          </svg>
+          <div className="cal__dot" style={{ width: 16, height: 16 }} />
           ring grows with the day's spending
         </span>
         <span>
-          <span
-            style={{
-              display: "inline-block",
-              width: 6,
-              height: 16,
-              background: "#8b2c1d",
-              opacity: 0.85,
-              borderRadius: 1,
-            }}
-          />
+          <div className="cal__weekbar" style={{ display: "inline-block", width: 6, height: 16 }} />
           margin bar marks the week's total
         </span>
       </div>
