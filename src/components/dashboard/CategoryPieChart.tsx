@@ -5,15 +5,21 @@ import { useEffect, useRef } from "react";
 import type { CategorySpending } from "@/lib/types";
 
 const COLORS = [
-  "#4E82F7",
-  "#F5A623",
-  "#34D399",
-  "#F472B6",
-  "#A78BFA",
-  "#38BDF8",
-  "#FB923C",
-  "#4ADE80",
+  "#8b2c1d",
+  "#6f5b3e",
+  "#4f6b3a",
+  "#a3711b",
+  "#b0533f",
+  "#7c6a86",
+  "#5e6b5a",
+  "#9a8b6f",
 ];
+
+function formatShort(amount: number): string {
+  if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(1)}jt`;
+  if (amount >= 1_000) return `${Math.round(amount / 1_000)}rb`;
+  return `Rp ${amount}`;
+}
 
 export function CategoryPieChart({ data }: { data: CategorySpending[] }) {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -21,9 +27,9 @@ export function CategoryPieChart({ data }: { data: CategorySpending[] }) {
   useEffect(() => {
     if (!svgRef.current || data.length === 0) return;
 
-    const size = 200;
+    const size = 190;
     const radius = size / 2;
-    const innerRadius = radius * 0.58;
+    const innerRadius = radius * 0.6;
 
     d3.select(svgRef.current).selectAll("*").remove();
 
@@ -38,13 +44,13 @@ export function CategoryPieChart({ data }: { data: CategorySpending[] }) {
       .pie<CategorySpending>()
       .value((d) => d.total)
       .sort(null)
-      .padAngle(0.025);
+      .padAngle(0.02);
 
     const arc = d3
       .arc<d3.PieArcDatum<CategorySpending>>()
       .innerRadius(innerRadius)
       .outerRadius(radius - 2)
-      .cornerRadius(2);
+      .cornerRadius(1);
 
     const arcs = svg.selectAll(".arc").data(pie(data)).enter().append("g");
 
@@ -52,40 +58,44 @@ export function CategoryPieChart({ data }: { data: CategorySpending[] }) {
       .append("path")
       .attr("d", arc)
       .attr("fill", (_, i) => COLORS[i % COLORS.length])
-      .attr("stroke", "#111722")
-      .attr("stroke-width", 1.5);
+      .attr("stroke", "#fbf7ee")
+      .attr("stroke-width", 2);
   }, [data]);
 
   if (data.length === 0) {
-    return (
-      <div
-        className="flex h-40 items-center justify-center text-sm"
-        style={{ color: "#3D4465" }}
-      >
-        No data
-      </div>
-    );
+    return <div className="empty">No categories yet.</div>;
   }
 
   const total = data.reduce((s, d) => s + d.total, 0);
 
   return (
-    <div className="flex flex-col items-center gap-5">
-      <svg ref={svgRef} />
-      <div className="w-full flex flex-col gap-2">
-        {data.slice(0, 5).map((d, i) => (
-          <div key={d.category} className="flex items-center gap-2.5 text-xs">
+    <div className="donut-wrap">
+      <div style={{ position: "relative" }}>
+        <svg ref={svgRef} style={{ display: "block" }} />
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div className="donut-center">
+            <div className="k">Total</div>
+            <div className="v">{formatShort(total)}</div>
+          </div>
+        </div>
+      </div>
+      <div className="legend-list" style={{ width: "100%" }}>
+        {data.slice(0, 6).map((d, i) => (
+          <div className="legend-row" key={d.category}>
             <span
-              className="w-2 h-2 rounded-sm shrink-0"
+              className="legend-swatch"
               style={{ background: COLORS[i % COLORS.length] }}
             />
-            <span className="truncate flex-1" style={{ color: "#7A80A0" }}>
-              {d.category}
-            </span>
-            <span
-              className="font-mono font-medium"
-              style={{ color: "#9AA0BE" }}
-            >
+            <span className="legend-name">{d.category}</span>
+            <span className="legend-pct">
               {total > 0 ? Math.round((d.total / total) * 100) : 0}%
             </span>
           </div>
