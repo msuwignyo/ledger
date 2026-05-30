@@ -62,11 +62,7 @@ function buildCalendarRows(month: string): CalendarCell[][] {
   );
 }
 
-export function CalendarHeatmap({
-  transactions,
-}: {
-  transactions: Transaction[];
-}) {
+export function CalendarHeatmap({ transactions }: { transactions: Transaction[] }) {
   const [month, setMonth] = useState(getCurrentMonth);
 
   const today = useMemo(() => {
@@ -88,293 +84,114 @@ export function CalendarHeatmap({
     const maxWeekly = Math.max(...weeklyTotals, 0);
     return {
       monthTotal: Object.values(dailyTotals).reduce((s, n) => s + n, 0),
-      circleScale: d3
-        .scaleSqrt()
-        .domain([0, maxDaily || 1])
-        .range([4, 28]),
-      barScale: d3
-        .scaleLinear()
-        .domain([0, maxWeekly || 1])
-        .range([4, 52]),
+      circleScale: d3.scaleSqrt().domain([0, maxDaily || 1]).range([4, 28]),
+      barScale: d3.scaleLinear().domain([0, maxWeekly || 1]).range([6, 62]),
     };
   }, [dailyTotals, weeklyTotals]);
 
   const rows = useMemo(() => buildCalendarRows(month), [month]);
 
   return (
-    <div
-      style={{
-        maxWidth: 780,
-        width: "100%",
-        background: "#111722",
-        border: "1px solid rgba(255,255,255,0.07)",
-        borderRadius: 16,
-        padding: 16,
-      }}
-    >
-      {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 16,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+    <div className="panel" style={{ maxWidth: 820 }}>
+      <div className="cal__head">
+        <div className="cal__nav">
           <button
             type="button"
+            className="cal__arrow"
             onClick={() => setMonth((m) => shiftMonth(m, -1))}
-            style={{
-              background: "rgba(255,255,255,0.06)",
-              border: "none",
-              color: "#9AA0BE",
-              width: 28,
-              height: 28,
-              borderRadius: 6,
-              cursor: "pointer",
-              fontSize: 14,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
+            aria-label="Previous month"
           >
             ‹
           </button>
-          <span style={{ fontSize: 15, fontWeight: 600, color: "#E4E8F5" }}>
-            {formatMonthLabel(month)}
-          </span>
+          <span className="cal__month">{formatMonthLabel(month)}</span>
           <button
             type="button"
+            className="cal__arrow"
             onClick={() => setMonth((m) => shiftMonth(m, 1))}
-            style={{
-              background: "rgba(255,255,255,0.06)",
-              border: "none",
-              color: "#9AA0BE",
-              width: 28,
-              height: 28,
-              borderRadius: 6,
-              cursor: "pointer",
-              fontSize: 14,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
+            aria-label="Next month"
           >
             ›
           </button>
         </div>
-        <span
-          style={{
-            fontSize: 12,
-            color: "#5C6280",
-            fontFamily: "var(--font-mono, monospace)",
-          }}
-        >
-          {formatMonthTotal(monthTotal)}
+        <span className="cal__total">
+          spent this month&nbsp;&nbsp;<b>{formatMonthTotal(monthTotal)}</b>
         </span>
       </div>
 
-      {/* Day-of-week headers */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "40px repeat(7, 1fr)",
-          gap: 2,
-          marginBottom: 4,
-        }}
-      >
-        <div />
-        {DAY_HEADERS.map((day) => (
-          <div
-            key={day}
-            style={{
-              textAlign: "center",
-              fontSize: 10,
-              color: "#3D4465",
-              fontWeight: 600,
-              letterSpacing: "0.08em",
-              padding: "4px 0",
-            }}
-          >
-            {day}
-          </div>
+      <div className="cal__dow">
+        <span />
+        {DAY_HEADERS.map((d) => (
+          <span key={d}>{d}</span>
         ))}
       </div>
 
-      {/* Calendar rows */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        {rows.map((row, weekIdx) => {
-          const firstInMonth = row.find((c) => c.inMonth);
-          const weekKey = firstInMonth
-            ? firstInMonth.date
-            : `${month}-w${row[0].date}`;
-          const weekTotal = weeklyTotals[weekIdx] ?? 0;
-          const barHeight = weekTotal > 0 ? barScale(weekTotal) : 0;
-          return (
-            <div
-              key={weekKey}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "40px repeat(7, 1fr)",
-                gap: 2,
-                alignItems: "center",
-              }}
-            >
-              {/* Week bar */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "flex-end",
-                  paddingRight: 6,
-                  height: 56,
-                }}
-              >
-                {barHeight > 0 && (
-                  <div
-                    style={{
-                      background: "rgba(245,166,35,0.25)",
-                      border: "1px solid rgba(245,166,35,0.4)",
-                      borderRadius: 4,
-                      width: 12,
-                      height: barHeight,
-                    }}
-                  />
-                )}
-              </div>
+      {rows.map((row, weekIdx) => {
+        const firstInMonth = row.find((c) => c.inMonth);
+        const weekKey = firstInMonth ? firstInMonth.date : `w${weekIdx}`;
+        const weekTotal = weeklyTotals[weekIdx] ?? 0;
+        const barHeight = weekTotal > 0 ? barScale(weekTotal) : 0;
 
-              {/* Day cells */}
-              {row.map((cell) => {
-                if (!cell.inMonth) {
-                  return (
-                    <div
-                      key={cell.date}
-                      style={{ height: 56, background: "transparent" }}
-                    />
-                  );
-                }
-                const isToday = cell.date === today;
-                const amount = dailyTotals[cell.date] ?? 0;
-                const radius = amount > 0 ? circleScale(amount) : 0;
-
-                return (
-                  <div
-                    key={cell.date}
-                    style={{
-                      height: 56,
-                      borderRadius: 8,
-                      background: isToday
-                        ? "rgba(255,255,255,0.05)"
-                        : "rgba(255,255,255,0.025)",
-                      outline: isToday
-                        ? "1px solid rgba(255,255,255,0.1)"
-                        : undefined,
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 3,
-                      padding: 4,
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: 10,
-                        color: isToday ? "#E4E8F5" : "#5C6280",
-                        fontWeight: 500,
-                        lineHeight: 1,
-                        alignSelf: "flex-start",
-                        paddingLeft: 3,
-                        width: "100%",
-                      }}
-                    >
-                      {cell.dayNum}
-                    </div>
-                    {amount > 0 && (
-                      <>
-                        <div
-                          style={{
-                            borderRadius: "50%",
-                            background: "rgba(78,130,247,0.35)",
-                            border: "1.5px solid rgba(78,130,247,0.7)",
-                            width: radius * 2,
-                            height: radius * 2,
-                            flexShrink: 0,
-                          }}
-                        />
-                        <div
-                          style={{
-                            fontSize: 8,
-                            fontFamily: "var(--font-mono, monospace)",
-                            color: "#5C6280",
-                            lineHeight: 1,
-                          }}
-                        >
-                          {formatAmountShort(amount)}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                );
-              })}
+        return (
+          <div className="cal__row" key={weekKey}>
+            <div className="cal__week">
+              {barHeight > 0 && (
+                <div
+                  className="cal__weekbar"
+                  style={{ height: barHeight }}
+                  title={formatMonthTotal(weekTotal)}
+                />
+              )}
             </div>
-          );
-        })}
-      </div>
+            {row.map((cell) => {
+              if (!cell.inMonth) {
+                return <div className="cal__cell out" key={cell.date} />;
+              }
+              const isToday = cell.date === today;
+              const amount = dailyTotals[cell.date] ?? 0;
+              const radius = amount > 0 ? circleScale(amount) : 0;
 
-      {/* Legend */}
-      <div
-        style={{
-          display: "flex",
-          gap: 20,
-          marginTop: 14,
-          paddingTop: 12,
-          borderTop: "1px solid rgba(255,255,255,0.05)",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            fontSize: 11,
-            color: "#5C6280",
-          }}
-        >
-          <div
+              return (
+                <div
+                  className={`cal__cell${isToday ? " today" : ""}`}
+                  key={cell.date}
+                >
+                  <span className="cal__daynum">{cell.dayNum}</span>
+                  {amount > 0 && (
+                    <>
+                      <div
+                        className="cal__dot"
+                        style={{ width: radius * 2, height: radius * 2 }}
+                      />
+                      <div className="cal__amt">{formatAmountShort(amount)}</div>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+
+      <div className="cal__legend">
+        <span>
+          <svg width="16" height="16">
+            <circle cx="8" cy="8" r="6" fill="rgba(139,44,29,0.16)" stroke="#8b2c1d" strokeWidth="1.4" />
+          </svg>
+          ring grows with the day's spending
+        </span>
+        <span>
+          <span
             style={{
-              width: 14,
-              height: 14,
-              borderRadius: "50%",
-              background: "rgba(78,130,247,0.35)",
-              border: "1.5px solid rgba(78,130,247,0.7)",
-              flexShrink: 0,
+              display: "inline-block",
+              width: 6,
+              height: 16,
+              background: "#8b2c1d",
+              opacity: 0.85,
+              borderRadius: 1,
             }}
           />
-          Circle size = daily spending
-        </div>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            fontSize: 11,
-            color: "#5C6280",
-          }}
-        >
-          <div
-            style={{
-              width: 10,
-              height: 18,
-              background: "rgba(245,166,35,0.25)",
-              border: "1px solid rgba(245,166,35,0.4)",
-              borderRadius: 3,
-              flexShrink: 0,
-            }}
-          />
-          Bar height = weekly total
-        </div>
+          margin bar marks the week's total
+        </span>
       </div>
     </div>
   );
