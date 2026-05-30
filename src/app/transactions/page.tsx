@@ -2,17 +2,20 @@
 
 import { useEffect, useRef, useState } from "react";
 import { TransactionTable } from "@/components/transactions/TransactionTable";
-import { getTransactions, saveTransactions } from "@/lib/storage";
+import { getActiveTransactions, getTransactions, saveTransactions } from "@/lib/storage";
 import type { Transaction } from "@/lib/types";
 
 export default function TransactionsPage() {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
+  const [visibleTransactions, setVisibleTransactions] = useState<Transaction[]>([]);
   const skipSaveRef = useRef(true);
 
   useEffect(() => {
-    setTransactions(getTransactions());
+    setAllTransactions(getTransactions());
+    setVisibleTransactions(getActiveTransactions());
     function refresh() {
-      setTransactions(getTransactions());
+      setAllTransactions(getTransactions());
+      setVisibleTransactions(getActiveTransactions());
     }
     window.addEventListener("ledger:updated", refresh);
     return () => window.removeEventListener("ledger:updated", refresh);
@@ -23,11 +26,14 @@ export default function TransactionsPage() {
       skipSaveRef.current = false;
       return;
     }
-    saveTransactions(transactions);
-  }, [transactions]);
+    saveTransactions(allTransactions);
+  }, [allTransactions]);
 
   function handleCategoryChange(id: string, category: string) {
-    setTransactions((prev) =>
+    setAllTransactions((prev) =>
+      prev.map((tx) => (tx.id === id ? { ...tx, category } : tx)),
+    );
+    setVisibleTransactions((prev) =>
       prev.map((tx) => (tx.id === id ? { ...tx, category } : tx)),
     );
   }
@@ -43,7 +49,7 @@ export default function TransactionsPage() {
       </div>
       <hr className="fleuron-rule" />
       <TransactionTable
-        transactions={transactions}
+        transactions={visibleTransactions}
         onCategoryChangeAction={handleCategoryChange}
       />
     </div>

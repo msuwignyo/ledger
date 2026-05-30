@@ -7,7 +7,7 @@ import { FrequencyChart } from "@/components/dashboard/FrequencyChart";
 import { PeriodToggle } from "@/components/dashboard/PeriodToggle";
 import { SpendingBarChart } from "@/components/dashboard/SpendingBarChart";
 import { SummaryCards } from "@/components/dashboard/SummaryCards";
-import { getTransactions } from "@/lib/storage";
+import { getActiveTransactions } from "@/lib/storage";
 import { getCategorySpending, groupTransactions } from "@/lib/transactions";
 import type { ChartType, Period, Transaction } from "@/lib/types";
 
@@ -17,9 +17,9 @@ export default function DashboardPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   useEffect(() => {
-    setTransactions(getTransactions());
+    setTransactions(getActiveTransactions());
     function refresh() {
-      setTransactions(getTransactions());
+      setTransactions(getActiveTransactions());
     }
     window.addEventListener("storage", refresh);
     window.addEventListener("ledger:updated", refresh);

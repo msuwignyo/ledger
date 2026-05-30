@@ -3,22 +3,58 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getTransactions } from "@/lib/storage";
+import { deleteSource, getDisabledSources, getTransactions, saveDisabledSources } from "@/lib/storage";
+import type { BankName } from "@/lib/types";
 import { UploadModal } from "@/components/modals/UploadModal";
+
+type SourceEntry = { sourceFile: string; bank: BankName; count: number };
+
+function deriveSources(txs: ReturnType<typeof getTransactions>): SourceEntry[] {
+  const map: Record<string, SourceEntry> = {};
+  for (const tx of txs) {
+    if (!map[tx.sourceFile]) {
+      map[tx.sourceFile] = { sourceFile: tx.sourceFile, bank: tx.bank, count: 0 };
+    }
+    map[tx.sourceFile].count++;
+  }
+  return Object.values(map).sort((a, b) => a.sourceFile.localeCompare(b.sourceFile));
+}
 
 export function Sidebar() {
   const pathname = usePathname();
   const [uploadOpen, setUploadOpen] = useState(false);
   const [txCount, setTxCount] = useState(0);
+  const [sources, setSources] = useState<SourceEntry[]>([]);
+  const [disabled, setDisabled] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    setTxCount(getTransactions().length);
+    const txs = getTransactions();
+    setTxCount(txs.length);
+    setSources(deriveSources(txs));
+    setDisabled(getDisabledSources());
     function refresh() {
-      setTxCount(getTransactions().length);
+      const updated = getTransactions();
+      setTxCount(updated.length);
+      setSources(deriveSources(updated));
+      setDisabled(getDisabledSources());
     }
     window.addEventListener("ledger:updated", refresh);
     return () => window.removeEventListener("ledger:updated", refresh);
   }, []);
+
+  function handleToggle(sourceFile: string) {
+    const next = new Set(disabled);
+    if (next.has(sourceFile)) next.delete(sourceFile);
+    else next.add(sourceFile);
+    saveDisabledSources(next);
+    setDisabled(next);
+    window.dispatchEvent(new CustomEvent("ledger:updated"));
+  }
+
+  function handleDelete(sourceFile: string) {
+    deleteSource(sourceFile);
+    window.dispatchEvent(new CustomEvent("ledger:updated"));
+  }
 
   return (
     <>
@@ -48,6 +84,39 @@ export function Sidebar() {
             {txCount > 0 && <span className="nav__num">{txCount}</span>}
           </Link>
         </nav>
+        <div className="sources">
+          <div className="sources__label">Data sources</div>
+          {sources.length === 0 ? (
+            <div className="sources__empty">No statements yet</div>
+          ) : (
+            sources.map((s) => {
+              const isOff = disabled.has(s.sourceFile);
+              return (
+                <div className={`sources__item${isOff ? " off" : ""}`} key={s.sourceFile} title={s.sourceFile}>
+                  <button
+                    type="button"
+                    className="sources__toggle"
+                    onClick={() => handleToggle(s.sourceFile)}
+                    aria-label={isOff ? "Enable source" : "Disable source"}
+                  >
+                    {isOff ? <ToggleOff /> : <ToggleOn />}
+                  </button>
+                  <span className="sources__bank">{s.bank.toUpperCase()}</span>
+                  <span className="sources__file">{s.sourceFile.replace(/\.pdf$/i, "")}</span>
+                  <span className="sources__count">{s.count}</span>
+                  <button
+                    type="button"
+                    className="sources__delete"
+                    onClick={() => handleDelete(s.sourceFile)}
+                    aria-label="Remove source"
+                  >
+                    ×
+                  </button>
+                </div>
+              );
+            })
+          )}
+        </div>
         <div className="sidebar__foot">
           <button
             type="button"
@@ -64,6 +133,23 @@ export function Sidebar() {
       </aside>
       <UploadModal open={uploadOpen} onCloseAction={() => setUploadOpen(false)} />
     </>
+  );
+}
+
+function ToggleOn() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+      <circle cx="7" cy="7" r="6" fill="currentColor" opacity="0.15" stroke="currentColor" strokeWidth="1.2" />
+      <circle cx="7" cy="7" r="2.5" fill="currentColor" />
+    </svg>
+  );
+}
+
+function ToggleOff() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+      <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.2" opacity="0.4" />
+    </svg>
   );
 }
 
