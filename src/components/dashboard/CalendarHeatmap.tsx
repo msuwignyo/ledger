@@ -82,7 +82,7 @@ export function CalendarHeatmap({ transactions }: { transactions: Transaction[] 
     const maxWeekly = Math.max(...weeklyTotals, 0);
     return {
       monthTotal: Object.values(dailyTotals).reduce((s, n) => s + n, 0),
-      circleScale: d3.scaleSqrt().domain([0, maxDaily || 1]).range([4, 28]),
+      circleScale: d3.scaleSqrt().domain([0, maxDaily || 1]).range([4, 36]),
       barScale: d3.scaleLinear().domain([0, maxWeekly || 1]).range([6, 62]),
     };
   }, [dailyTotals, weeklyTotals]);
@@ -90,7 +90,7 @@ export function CalendarHeatmap({ transactions }: { transactions: Transaction[] 
   const rows = useMemo(() => buildCalendarRows(month), [month]);
 
   return (
-    <div className="panel" style={{ maxWidth: 820 }}>
+    <div className="panel">
       <div className="cal__head">
         <div className="cal__nav">
           <button

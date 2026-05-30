@@ -414,7 +414,7 @@ html, body {
   border-radius: 1px;
 }
 .cal__cell {
-  height: 78px;
+  height: 92px;
   border-left: 1px solid var(--rule-soft);
   padding: 5px 6px;
   display: flex;
