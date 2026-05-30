@@ -1,13 +1,3 @@
 @import "tailwindcss";
-
-@theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-body {
-  background: #0a0d14;
-  color: #e4e8f5;
-  font-family: var(--font-sans), sans-serif;
-  -webkit-font-smoothing: antialiased;
-}
+@import "./bookish.css";
+@import "./app.css";

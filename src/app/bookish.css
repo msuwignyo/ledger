@@ -1,0 +1,258 @@
+/* ============================================================================
+   Markus Suwignyo — Bookish Design System
+   Colors + Type tokens
+
+   The system layers a warm paper/ink palette on top of Tailwind's stone scale
+   so the blog can keep reading like printed pages even though it's a SPA.
+   ============================================================================ */
+
+/* ----- Fonts (Google Fonts CDN; see /fonts for local fallbacks) ------------ */
+@import url("https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+:root {
+  /* ---------- Stone scale (Tailwind, the codebase's base) ----------------- */
+  --stone-50:  #fafaf9;
+  --stone-100: #f5f5f4;
+  --stone-200: #e7e5e4;
+  --stone-300: #d6d3d1;
+  --stone-400: #a8a29e;
+  --stone-500: #78716c;
+  --stone-600: #57534e;
+  --stone-700: #44403c;
+  --stone-800: #292524;
+  --stone-900: #1c1917;
+
+  /* ---------- Paper / ink — the bookish overlay --------------------------- */
+  /* Warmer than stone-50; reads as old-book cream under a desk lamp. */
+  --paper:        #f6f1e6;   /* page background */
+  --paper-edge:   #ece4d2;   /* deckle edge / aged margin */
+  --paper-shade:  #e7decb;   /* spine shadow, sidebars */
+  --ink:          #1f1a14;   /* body text (warmer than stone-900) */
+  --ink-soft:     #4a4036;   /* secondary text */
+  --ink-faint:    #8a7e6e;   /* tertiary, dates, footnotes */
+  --rule:         #c9bfa9;   /* hairline rules on paper */
+  --rule-soft:    #e3d9c4;
+
+  /* Accent: a single drop of bookbinder's red — used very sparingly,
+     drop caps in chapter openers, pull-quote marks, link underlines. */
+  --accent:       #8b2c1d;   /* oxblood / bookbinder red */
+  --accent-soft:  #b0533f;
+
+  /* Semantic state colors — kept muted to fit the paper aesthetic */
+  --success:      #4f6b3a;   /* moss */
+  --warning:      #a3711b;   /* aged ochre */
+  --danger:       #8b2c1d;   /* same as accent */
+
+  /* ---------- Foreground / background semantic vars ----------------------- */
+  --bg:           var(--paper);
+  --bg-elev:      #fbf7ee;       /* slightly brighter card / blockquote bg */
+  --bg-sunk:      var(--paper-shade);
+  --fg:           var(--ink);
+  --fg-soft:      var(--ink-soft);
+  --fg-faint:     var(--ink-faint);
+  --border:       var(--rule);
+  --border-soft:  var(--rule-soft);
+  --link:         var(--ink);
+  --link-hover:   var(--accent);
+  --selection-bg: #f0d9a8;
+
+  /* ---------- Type families ---------------------------------------------- */
+  /* Display: high-contrast bookish serif, used for chapter titles + h1/h2.
+     Body:    optimized book serif for long-form reading.
+     Mono:    code blocks (Night Owl Prism theme expects mono). */
+  --font-display: "EB Garamond", "Cormorant Garamond", Garamond, Georgia,
+                  "Times New Roman", serif;
+  --font-body:    "Lora", "EB Garamond", Georgia, "Times New Roman", serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo,
+                  Consolas, monospace;
+
+  /* ---------- Type scale (book-leaning; modest 1.2 ratio) ---------------- */
+  --fs-xs:    0.8125rem;   /* 13px — captions, footnotes */
+  --fs-sm:    0.9375rem;   /* 15px — small body */
+  --fs-base:  1.125rem;    /* 18px — body. Generous, like a paperback */
+  --fs-lg:    1.25rem;     /* 20px — lead paragraph */
+  --fs-xl:    1.5rem;      /* 24px — h4 / pull quotes */
+  --fs-2xl:   1.875rem;    /* 30px — h3 */
+  --fs-3xl:   2.5rem;      /* 40px — h2 */
+  --fs-4xl:   3.25rem;     /* 52px — h1 / chapter opener */
+  --fs-5xl:   4.5rem;      /* 72px — display, used very rarely */
+
+  /* Body line-height tuned for serif reading. */
+  --lh-tight:  1.15;
+  --lh-snug:   1.3;
+  --lh-body:   1.7;        /* book paragraph */
+  --lh-loose:  1.9;
+
+  /* Letter spacing — serifs want a touch of openness, not crunch */
+  --tracking-tight:  -0.01em;
+  --tracking-normal: 0;
+  --tracking-wide:   0.04em;
+  --tracking-caps:   0.12em;   /* small-caps style nav labels */
+
+  /* ---------- Measure (reading column width) ----------------------------- */
+  --measure-narrow: 32rem;     /* footnotes / sidebar */
+  --measure:        38rem;     /* prose default — ~65 characters */
+  --measure-wide:   46rem;     /* hero text */
+  --measure-page:   64rem;     /* with TOC sidebar */
+
+  /* ---------- Spacing scale (4px base) ----------------------------------- */
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.25rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+
+  /* ---------- Radii ------------------------------------------------------- */
+  /* Books don't have rounded corners. Keep these small. */
+  --radius-none: 0;
+  --radius-sm:   2px;
+  --radius-md:   4px;
+  --radius-lg:   6px;
+  --radius-pill: 9999px;
+
+  /* ---------- Shadows ---------------------------------------------------- */
+  /* Bookish shadows mimic a page resting on another — short, low contrast. */
+  --shadow-page:  0 1px 0 rgba(60, 45, 25, 0.06),
+                  0 8px 24px -12px rgba(60, 45, 25, 0.18);
+  --shadow-card:  0 1px 2px rgba(60, 45, 25, 0.08),
+                  0 2px 8px -2px rgba(60, 45, 25, 0.06);
+  --shadow-inset: inset 0 1px 0 rgba(255, 250, 235, 0.6),
+                  inset 0 -1px 0 rgba(60, 45, 25, 0.05);
+
+  /* ---------- Motion ---------------------------------------------------- */
+  --ease:       cubic-bezier(0.2, 0.7, 0.2, 1);
+  --duration:   200ms;
+  --duration-slow: 320ms;
+}
+
+/* ============================================================================
+   Semantic element styles (apply with `.bookish` scope so we don't fight
+   Tailwind's preflight globally).
+   ============================================================================ */
+
+.bookish {
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  color: var(--fg);
+  background: var(--bg);
+  font-feature-settings: "kern", "liga", "onum";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.bookish ::selection { background: var(--selection-bg); color: var(--ink); }
+
+.bookish h1, .bookish h2, .bookish h3, .bookish h4 {
+  font-family: var(--font-display);
+  color: var(--ink);
+  font-weight: 500;
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  margin: 0 0 var(--space-6);
+}
+
+.bookish h1 {
+  font-size: var(--fs-4xl);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+.bookish h2 { font-size: var(--fs-3xl); font-weight: 500; }
+.bookish h3 { font-size: var(--fs-2xl); font-weight: 500; }
+.bookish h4 { font-size: var(--fs-xl);  font-weight: 600; font-style: italic; }
+
+.bookish p {
+  margin: 0 0 var(--space-5);
+  max-width: var(--measure);
+  text-wrap: pretty;
+  hyphens: auto;
+}
+
+.bookish .lead {
+  font-size: var(--fs-lg);
+  line-height: 1.55;
+  color: var(--fg-soft);
+  font-style: italic;
+  max-width: var(--measure-wide);
+}
+
+.bookish a {
+  color: var(--link);
+  text-decoration: underline;
+  text-decoration-color: var(--rule);
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+  transition: color var(--duration) var(--ease),
+              text-decoration-color var(--duration) var(--ease);
+}
+.bookish a:hover {
+  color: var(--link-hover);
+  text-decoration-color: var(--accent-soft);
+}
+
+.bookish blockquote {
+  border-left: 2px solid var(--accent);
+  margin: var(--space-8) 0;
+  padding: var(--space-1) var(--space-6);
+  font-style: italic;
+  color: var(--fg-soft);
+  max-width: var(--measure);
+}
+
+.bookish code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--bg-sunk);
+  padding: 0.1em 0.35em;
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+}
+
+.bookish pre {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  background: #011627;            /* Night Owl theme bg, kept from the blog */
+  color: #d6deeb;
+  padding: var(--space-5) var(--space-6);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  margin: var(--space-6) 0;
+}
+
+.bookish hr {
+  border: 0;
+  text-align: center;
+  margin: var(--space-12) 0;
+  color: var(--rule);
+}
+.bookish hr::before {
+  content: "❦";              /* fleuron — classic chapter break */
+  font-size: 1.25rem;
+  color: var(--rule);
+  letter-spacing: 1em;
+}
+
+/* Drop cap — for the first paragraph of a chapter / post */
+.bookish .dropcap::first-letter {
+  font-family: var(--font-display);
+  font-size: 4.25em;
+  float: left;
+  line-height: 0.85;
+  padding: 0.06em 0.08em 0 0;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* Small caps utility (true small caps where the font supports them). */
+.bookish .smallcaps {
+  font-variant-caps: all-small-caps;
+  letter-spacing: var(--tracking-caps);
+}
