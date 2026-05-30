@@ -65,7 +65,7 @@ export function FrequencyChart({
       )
       .call((g) => g.select(".domain").remove())
       .call((g) =>
-        g.selectAll(".tick line").attr("stroke", "rgba(255,255,255,0.05)"),
+        g.selectAll(".tick line").attr("stroke", "#e3d9c4"),
       );
 
     // Line connecting dots
@@ -79,7 +79,7 @@ export function FrequencyChart({
       .append("path")
       .datum(data)
       .attr("fill", "none")
-      .attr("stroke", "#F5A623")
+      .attr("stroke", "#8b2c1d")
       .attr("stroke-width", 1.5)
       .attr("d", line);
 
@@ -93,8 +93,8 @@ export function FrequencyChart({
       .attr("cx", (d) => (x(d.label) ?? 0) + x.bandwidth() / 2)
       .attr("cy", (d) => y(d.count))
       .attr("r", 4)
-      .attr("fill", "#F5A623")
-      .attr("fill-opacity", 0.9);
+      .attr("fill", "#8b2c1d")
+      .attr("fill-opacity", 1);
 
     // X axis
     const everyN =
@@ -116,7 +116,7 @@ export function FrequencyChart({
     if (rotate) {
       xAxis
         .selectAll("text")
-        .attr("fill", "#3D4465")
+        .attr("fill", "#8a7e6e")
         .attr("font-size", "11px")
         .attr("text-anchor", "end")
         .attr("dx", "-0.5em")
@@ -125,7 +125,7 @@ export function FrequencyChart({
     } else {
       xAxis
         .selectAll("text")
-        .attr("fill", "#3D4465")
+        .attr("fill", "#8a7e6e")
         .attr("font-size", "11px")
         .attr("dy", "1.2em");
     }
@@ -137,15 +137,13 @@ export function FrequencyChart({
       .call((g) => g.select(".domain").remove())
       .call((g) => g.selectAll(".tick line").remove())
       .selectAll("text")
-      .attr("fill", "#3D4465")
+      .attr("fill", "#8a7e6e")
       .attr("font-size", "11px");
   }, [data, period]);
 
   if (data.length === 0) {
     return (
-      <div className="flex h-60 items-center justify-center text-sm text-zinc-400">
-        No data yet — upload a statement to get started.
-      </div>
+      <div className="empty">Nothing recorded yet.</div>
     );
   }
 
