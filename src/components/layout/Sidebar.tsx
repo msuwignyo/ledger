@@ -2,171 +2,86 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getTransactions } from "@/lib/storage";
 import { UploadModal } from "@/components/modals/UploadModal";
 
 export function Sidebar() {
   const pathname = usePathname();
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [txCount, setTxCount] = useState(0);
+
+  useEffect(() => {
+    setTxCount(getTransactions().length);
+    function refresh() {
+      setTxCount(getTransactions().length);
+    }
+    window.addEventListener("ledger:updated", refresh);
+    return () => window.removeEventListener("ledger:updated", refresh);
+  }, []);
 
   return (
     <>
-      <aside
-        className="w-52 flex flex-col shrink-0 min-h-screen"
-        style={{
-          background: "#07090e",
-          borderRight: "1px solid rgba(255,255,255,0.06)",
-        }}
-      >
-        {/* Logo */}
-        <div className="px-5 pt-7 pb-8 flex items-center gap-2.5">
-          <div
-            className="w-7 h-7 rounded-md flex items-center justify-center text-xs font-bold shrink-0"
-            style={{ background: "#F5A623", color: "#07090e" }}
-          >
-            L
+      <aside className="sidebar">
+        <div className="sidebar__brand">
+          <div className="sidebar__mark">
+            Ledger<span className="stroke">.</span>
           </div>
-          <span
-            className="font-semibold tracking-tight text-base"
-            style={{ color: "#E4E8F5" }}
-          >
-            Ledger
-          </span>
+          <div className="sidebar__tag">a book of accounts</div>
         </div>
-
-        {/* Nav */}
-        <nav className="flex flex-col gap-0.5 px-3 flex-1">
-          <NavLink href="/dashboard" active={pathname === "/dashboard"}>
-            <DashboardIcon />
-            Dashboard
-          </NavLink>
-          <NavLink href="/transactions" active={pathname === "/transactions"}>
-            <TransactionsIcon />
+        <div className="sidebar__rule" />
+        <nav className="nav">
+          <div className="nav__label">Pages</div>
+          <Link
+            href="/dashboard"
+            className={`nav__item${pathname === "/dashboard" ? " active" : ""}`}
+          >
+            <DashIcon />
+            Overview
+          </Link>
+          <Link
+            href="/transactions"
+            className={`nav__item${pathname === "/transactions" ? " active" : ""}`}
+          >
+            <TxIcon />
             Transactions
-          </NavLink>
+            {txCount > 0 && <span className="nav__num">{txCount}</span>}
+          </Link>
         </nav>
-
-        {/* Upload button */}
-        <div className="px-3 pb-6">
+        <div className="sidebar__foot">
           <button
             type="button"
+            className="btn-upload"
             onClick={() => setUploadOpen(true)}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-opacity hover:opacity-90"
-            style={{ background: "#F5A623", color: "#07090e" }}
           >
-            <span className="text-base leading-none">+</span>
-            Upload PDF
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            Upload statement
           </button>
         </div>
+        <div className="sidebar__sig">kept in a fair hand</div>
       </aside>
-
-      <UploadModal
-        open={uploadOpen}
-        onCloseAction={() => setUploadOpen(false)}
-      />
+      <UploadModal open={uploadOpen} onCloseAction={() => setUploadOpen(false)} />
     </>
   );
 }
 
-function NavLink({
-  href,
-  active,
-  children,
-}: {
-  href: string;
-  active: boolean;
-  children: React.ReactNode;
-}) {
+function DashIcon() {
   return (
-    <Link
-      href={href}
-      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors"
-      style={
-        active
-          ? {
-              background: "rgba(245,166,35,0.12)",
-              color: "#F5A623",
-            }
-          : {
-              color: "rgba(228,232,245,0.45)",
-            }
-      }
-      onMouseEnter={(e) => {
-        if (!active) e.currentTarget.style.color = "rgba(228,232,245,0.75)";
-      }}
-      onMouseLeave={(e) => {
-        if (!active) e.currentTarget.style.color = "rgba(228,232,245,0.45)";
-      }}
-    >
-      {children}
-    </Link>
-  );
-}
-
-function DashboardIcon() {
-  return (
-    <svg
-      width="15"
-      height="15"
-      viewBox="0 0 15 15"
-      fill="none"
-      aria-hidden="true"
-    >
-      <rect
-        x="1"
-        y="1"
-        width="6"
-        height="6"
-        rx="1"
-        fill="currentColor"
-        opacity="0.9"
-      />
-      <rect
-        x="8"
-        y="1"
-        width="6"
-        height="6"
-        rx="1"
-        fill="currentColor"
-        opacity="0.5"
-      />
-      <rect
-        x="1"
-        y="8"
-        width="6"
-        height="6"
-        rx="1"
-        fill="currentColor"
-        opacity="0.5"
-      />
-      <rect
-        x="8"
-        y="8"
-        width="6"
-        height="6"
-        rx="1"
-        fill="currentColor"
-        opacity="0.9"
-      />
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3">
+      <rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1" />
+      <rect x="9" y="1.5" width="5.5" height="5.5" rx="1" />
+      <rect x="1.5" y="9" width="5.5" height="5.5" rx="1" />
+      <rect x="9" y="9" width="5.5" height="5.5" rx="1" />
     </svg>
   );
 }
 
-function TransactionsIcon() {
+function TxIcon() {
   return (
-    <svg
-      width="15"
-      height="15"
-      viewBox="0 0 15 15"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="M1 3.5h13M1 7.5h9M1 11.5h11"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+      <path d="M2 4h12M2 8h9M2 12h11" />
     </svg>
   );
 }
