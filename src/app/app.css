@@ -108,7 +108,7 @@ html, body {
   transition: color var(--duration) var(--ease), background var(--duration) var(--ease);
   position: relative;
 }
-.nav__item:hover { color: var(--ink); background: rgba(139, 44, 29, 0.04); }
+.nav__item:hover { color: var(--ink); background: var(--accent-wash); }
 .nav__item.active { color: var(--accent); }
 .nav__item.active::before {
   content: "";
@@ -372,7 +372,7 @@ html, body {
   cursor: pointer;
   font-size: 16px;
   display: flex; align-items: center; justify-content: center;
-  transition: all var(--duration) var(--ease);
+  transition: color var(--duration) var(--ease), opacity var(--duration) var(--ease);
   font-family: var(--font-display);
 }
 .cal__arrow:hover { background: var(--paper-shade); color: var(--ink); }
@@ -422,7 +422,7 @@ html, body {
   align-items: center;
   position: relative;
 }
-.cal__cell.out { background: repeating-linear-gradient(135deg, transparent, transparent 5px, rgba(201,191,169,0.10) 5px, rgba(201,191,169,0.10) 6px); }
+.cal__cell.out { background: repeating-linear-gradient(135deg, transparent, transparent 5px, var(--paper-stripe) 5px, var(--paper-stripe) 6px); }
 .cal__daynum {
   align-self: flex-start;
   font-family: var(--font-mono);
@@ -439,7 +439,7 @@ html, body {
 }
 .cal__dot {
   border-radius: var(--radius-pill);
-  background: rgba(139, 44, 29, 0.16);
+  background: var(--accent-tint);
   border: 1.4px solid var(--accent);
   margin: auto 0 2px;
   flex-shrink: 0;
@@ -567,7 +567,7 @@ table.ledger tbody td {
 }
 table.ledger tbody tr:last-child td { border-bottom: none; }
 table.ledger tbody tr { transition: background var(--duration) var(--ease); }
-table.ledger tbody tr:hover { background: rgba(139, 44, 29, 0.035); }
+table.ledger tbody tr:hover { background: var(--accent-wash); }
 .td-date { font-family: var(--font-mono); font-size: 13px; color: var(--ink-faint); white-space: nowrap; }
 .td-desc { color: var(--ink); max-width: 280px; }
 .td-amt { font-family: var(--font-mono); font-size: 14px; text-align: right; white-space: nowrap; font-feature-settings: "tnum"; }
@@ -633,7 +633,7 @@ table.ledger tbody tr:hover { background: rgba(139, 44, 29, 0.035); }
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(31, 26, 20, 0.34);
+  background: var(--overlay-scrim);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -683,10 +683,10 @@ table.ledger tbody tr:hover { background: rgba(139, 44, 29, 0.035); }
   padding: 34px 20px;
   text-align: center;
   background: var(--paper);
-  transition: all var(--duration) var(--ease);
+  transition: border-color var(--duration) var(--ease), background var(--duration) var(--ease);
   cursor: pointer;
 }
-.dropzone.drag { border-color: var(--accent); background: rgba(139,44,29,0.04); }
+.dropzone.drag { border-color: var(--accent); background: var(--accent-wash); }
 .dropzone__icon { color: var(--ink-faint); margin-bottom: 12px; }
 .dropzone__main { font-family: var(--font-display); font-size: 19px; color: var(--ink); }
 .dropzone__hint { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; color: var(--ink-faint); margin-top: 6px; }
@@ -704,7 +704,7 @@ table.ledger tbody tr:hover { background: rgba(139, 44, 29, 0.035); }
   background: var(--paper);
   color: var(--ink-soft);
   cursor: pointer;
-  transition: all var(--duration) var(--ease);
+  transition: color var(--duration) var(--ease), background var(--duration) var(--ease), border-color var(--duration) var(--ease);
 }
 .bank-opt:hover { border-color: var(--accent-soft); }
 .bank-opt.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
