@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getCategories } from "@/lib/storage";
 
 export function CategoryDropdown({
@@ -12,43 +12,38 @@ export function CategoryDropdown({
 }) {
   const [open, setOpen] = useState(false);
   const [categories] = useState(() => getCategories());
+  const ref = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
 
   return (
-    <div className="relative">
+    <span className="cat-edit" ref={ref}>
       <button
         type="button"
+        className="cat-btn"
         onClick={() => setOpen((o) => !o)}
-        className="text-sm font-medium transition-colors"
-        style={{ color: "#F5A623" }}
       >
         {value}
       </button>
       {open && (
-        <div
-          className="absolute z-10 mt-1 rounded-lg py-1 min-w-44 shadow-xl"
-          style={{
-            background: "#192030",
-            border: "1px solid rgba(255,255,255,0.10)",
-          }}
-        >
+        <div className="cat-menu">
           {categories.map((cat) => (
             <button
               key={cat}
               type="button"
+              className={cat === value ? "sel" : ""}
               onClick={() => {
                 onChangeAction(cat);
                 setOpen(false);
-              }}
-              className="w-full text-left px-3 py-2 text-sm transition-colors"
-              style={{
-                color: cat === value ? "#F5A623" : "#7A80A0",
-                fontWeight: cat === value ? 500 : 400,
-              }}
-              onMouseEnter={(e) => {
-                if (cat !== value) e.currentTarget.style.color = "#C8CCDF";
-              }}
-              onMouseLeave={(e) => {
-                if (cat !== value) e.currentTarget.style.color = "#7A80A0";
               }}
             >
               {cat}
@@ -56,6 +51,6 @@ export function CategoryDropdown({
           ))}
         </div>
       )}
-    </div>
+    </span>
   );
 }
