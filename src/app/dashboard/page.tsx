@@ -7,14 +7,9 @@ import { FrequencyChart } from "@/components/dashboard/FrequencyChart";
 import { PeriodToggle } from "@/components/dashboard/PeriodToggle";
 import { SpendingBarChart } from "@/components/dashboard/SpendingBarChart";
 import { SummaryCards } from "@/components/dashboard/SummaryCards";
-import { getTransactions } from "@/lib/storage";
+import { getActiveTransactions } from "@/lib/storage";
 import { getCategorySpending, groupTransactions } from "@/lib/transactions";
 import type { ChartType, Period, Transaction } from "@/lib/types";
-
-const PANEL_STYLE = {
-  background: "#111722",
-  border: "1px solid rgba(255,255,255,0.07)",
-};
 
 export default function DashboardPage() {
   const [period, setPeriod] = useState<Period>("monthly");
@@ -22,12 +17,10 @@ export default function DashboardPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   useEffect(() => {
-    setTransactions(getTransactions());
-
+    setTransactions(getActiveTransactions());
     function refresh() {
-      setTransactions(getTransactions());
+      setTransactions(getActiveTransactions());
     }
-
     window.addEventListener("storage", refresh);
     window.addEventListener("ledger:updated", refresh);
     return () => {
@@ -40,45 +33,37 @@ export default function DashboardPage() {
   const categorySpending = getCategorySpending(transactions);
 
   return (
-    <div className="flex flex-col gap-3 max-w-5xl">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold" style={{ color: "#F0F2FA" }}>
-          Overview
-        </h1>
+    <div className="page">
+      <div className="chapter">
+        <div>
+          <div className="chapter__eyebrow">Chapter I · The Accounts</div>
+          <h1 className="chapter__title">Overview</h1>
+          <div className="chapter__sub">a reckoning of where the money went</div>
+        </div>
         <PeriodToggle value={period} onChangeAction={setPeriod} />
       </div>
+      <hr className="fleuron-rule" />
 
       <SummaryCards transactions={transactions} />
+
+      <div style={{ height: 26 }} />
 
       {period === "monthly" ? (
         <CalendarHeatmap transactions={transactions} />
       ) : (
-        <div className="flex gap-4">
-          <div className="flex-[2] rounded-xl p-4" style={PANEL_STYLE}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-medium" style={{ color: "#5C6280" }}>
-                Spending Over Time
-              </h2>
-              <div
-                className="flex gap-0.5 p-0.5 rounded-md"
-                style={{ background: "rgba(255,255,255,0.05)" }}
-              >
+        <div className="grid-2">
+          <div className="panel">
+            <div className="panel__head">
+              <h2 className="panel__title">Spending over time</h2>
+              <div className="seg">
                 {(["bar", "frequency"] as ChartType[]).map((ct) => (
                   <button
                     key={ct}
                     type="button"
+                    className={chartType === ct ? "on" : ""}
                     onClick={() => setChartType(ct)}
-                    className="px-3 py-1 rounded text-xs font-medium capitalize transition-all"
-                    style={
-                      chartType === ct
-                        ? {
-                            background: "rgba(255,255,255,0.10)",
-                            color: "#E4E8F5",
-                          }
-                        : { color: "rgba(228,232,245,0.35)" }
-                    }
                   >
-                    {ct}
+                    {ct === "bar" ? "Totals" : "Frequency"}
                   </button>
                 ))}
               </div>
@@ -89,14 +74,10 @@ export default function DashboardPage() {
               <FrequencyChart transactions={transactions} period={period} />
             )}
           </div>
-
-          <div className="flex-1 rounded-xl p-4" style={PANEL_STYLE}>
-            <h2
-              className="text-sm font-medium mb-4"
-              style={{ color: "#5C6280" }}
-            >
-              By Category
-            </h2>
+          <div className="panel">
+            <div className="panel__head">
+              <h2 className="panel__title">By category</h2>
+            </div>
             <CategoryPieChart data={categorySpending} />
           </div>
         </div>

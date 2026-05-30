@@ -2,171 +2,172 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { deleteSource, getDisabledSources, getTransactions, saveDisabledSources } from "@/lib/storage";
+import type { BankName } from "@/lib/types";
 import { UploadModal } from "@/components/modals/UploadModal";
+
+type SourceEntry = { sourceFile: string; bank: BankName; count: number };
+
+function deriveSources(txs: ReturnType<typeof getTransactions>): SourceEntry[] {
+  const map: Record<string, SourceEntry> = {};
+  for (const tx of txs) {
+    if (!map[tx.sourceFile]) {
+      map[tx.sourceFile] = { sourceFile: tx.sourceFile, bank: tx.bank, count: 0 };
+    }
+    map[tx.sourceFile].count++;
+  }
+  return Object.values(map).sort((a, b) => a.sourceFile.localeCompare(b.sourceFile));
+}
 
 export function Sidebar() {
   const pathname = usePathname();
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [txCount, setTxCount] = useState(0);
+  const [sources, setSources] = useState<SourceEntry[]>([]);
+  const [disabled, setDisabled] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const txs = getTransactions();
+    setTxCount(txs.length);
+    setSources(deriveSources(txs));
+    setDisabled(getDisabledSources());
+    function refresh() {
+      const updated = getTransactions();
+      setTxCount(updated.length);
+      setSources(deriveSources(updated));
+      setDisabled(getDisabledSources());
+    }
+    window.addEventListener("ledger:updated", refresh);
+    return () => window.removeEventListener("ledger:updated", refresh);
+  }, []);
+
+  function handleToggle(sourceFile: string) {
+    const next = new Set(disabled);
+    if (next.has(sourceFile)) next.delete(sourceFile);
+    else next.add(sourceFile);
+    saveDisabledSources(next);
+    setDisabled(next);
+    window.dispatchEvent(new CustomEvent("ledger:updated"));
+  }
+
+  function handleDelete(sourceFile: string) {
+    deleteSource(sourceFile);
+    window.dispatchEvent(new CustomEvent("ledger:updated"));
+  }
 
   return (
     <>
-      <aside
-        className="w-52 flex flex-col shrink-0 min-h-screen"
-        style={{
-          background: "#07090e",
-          borderRight: "1px solid rgba(255,255,255,0.06)",
-        }}
-      >
-        {/* Logo */}
-        <div className="px-5 pt-7 pb-8 flex items-center gap-2.5">
-          <div
-            className="w-7 h-7 rounded-md flex items-center justify-center text-xs font-bold shrink-0"
-            style={{ background: "#F5A623", color: "#07090e" }}
-          >
-            L
+      <aside className="sidebar">
+        <div className="sidebar__brand">
+          <div className="sidebar__mark">
+            Ledger<span className="stroke">.</span>
           </div>
-          <span
-            className="font-semibold tracking-tight text-base"
-            style={{ color: "#E4E8F5" }}
-          >
-            Ledger
-          </span>
+          <div className="sidebar__tag">a book of accounts</div>
         </div>
-
-        {/* Nav */}
-        <nav className="flex flex-col gap-0.5 px-3 flex-1">
-          <NavLink href="/dashboard" active={pathname === "/dashboard"}>
-            <DashboardIcon />
-            Dashboard
-          </NavLink>
-          <NavLink href="/transactions" active={pathname === "/transactions"}>
-            <TransactionsIcon />
+        <div className="sidebar__rule" />
+        <nav className="nav">
+          <div className="nav__label">Pages</div>
+          <Link
+            href="/dashboard"
+            className={`nav__item${pathname === "/dashboard" ? " active" : ""}`}
+          >
+            <DashIcon />
+            Overview
+          </Link>
+          <Link
+            href="/transactions"
+            className={`nav__item${pathname === "/transactions" ? " active" : ""}`}
+          >
+            <TxIcon />
             Transactions
-          </NavLink>
+            {txCount > 0 && <span className="nav__num">{txCount}</span>}
+          </Link>
         </nav>
-
-        {/* Upload button */}
-        <div className="px-3 pb-6">
+        <div className="sources">
+          <div className="sources__label">Data sources</div>
+          {sources.length === 0 ? (
+            <div className="sources__empty">No statements yet</div>
+          ) : (
+            sources.map((s) => {
+              const isOff = disabled.has(s.sourceFile);
+              return (
+                <div className={`sources__item${isOff ? " off" : ""}`} key={s.sourceFile} title={s.sourceFile}>
+                  <button
+                    type="button"
+                    className="sources__toggle"
+                    onClick={() => handleToggle(s.sourceFile)}
+                    aria-label={isOff ? "Enable source" : "Disable source"}
+                  >
+                    {isOff ? <ToggleOff /> : <ToggleOn />}
+                  </button>
+                  <span className="sources__bank">{s.bank.toUpperCase()}</span>
+                  <span className="sources__file">{s.sourceFile.replace(/\.pdf$/i, "")}</span>
+                  <span className="sources__count">{s.count}</span>
+                  <button
+                    type="button"
+                    className="sources__delete"
+                    onClick={() => handleDelete(s.sourceFile)}
+                    aria-label="Remove source"
+                  >
+                    ×
+                  </button>
+                </div>
+              );
+            })
+          )}
+        </div>
+        <div className="sidebar__foot">
           <button
             type="button"
+            className="btn-upload"
             onClick={() => setUploadOpen(true)}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-opacity hover:opacity-90"
-            style={{ background: "#F5A623", color: "#07090e" }}
           >
-            <span className="text-base leading-none">+</span>
-            Upload PDF
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            Upload statement
           </button>
         </div>
+        <div className="sidebar__sig">kept in a fair hand</div>
       </aside>
-
-      <UploadModal
-        open={uploadOpen}
-        onCloseAction={() => setUploadOpen(false)}
-      />
+      <UploadModal open={uploadOpen} onCloseAction={() => setUploadOpen(false)} />
     </>
   );
 }
 
-function NavLink({
-  href,
-  active,
-  children,
-}: {
-  href: string;
-  active: boolean;
-  children: React.ReactNode;
-}) {
+function ToggleOn() {
   return (
-    <Link
-      href={href}
-      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors"
-      style={
-        active
-          ? {
-              background: "rgba(245,166,35,0.12)",
-              color: "#F5A623",
-            }
-          : {
-              color: "rgba(228,232,245,0.45)",
-            }
-      }
-      onMouseEnter={(e) => {
-        if (!active) e.currentTarget.style.color = "rgba(228,232,245,0.75)";
-      }}
-      onMouseLeave={(e) => {
-        if (!active) e.currentTarget.style.color = "rgba(228,232,245,0.45)";
-      }}
-    >
-      {children}
-    </Link>
-  );
-}
-
-function DashboardIcon() {
-  return (
-    <svg
-      width="15"
-      height="15"
-      viewBox="0 0 15 15"
-      fill="none"
-      aria-hidden="true"
-    >
-      <rect
-        x="1"
-        y="1"
-        width="6"
-        height="6"
-        rx="1"
-        fill="currentColor"
-        opacity="0.9"
-      />
-      <rect
-        x="8"
-        y="1"
-        width="6"
-        height="6"
-        rx="1"
-        fill="currentColor"
-        opacity="0.5"
-      />
-      <rect
-        x="1"
-        y="8"
-        width="6"
-        height="6"
-        rx="1"
-        fill="currentColor"
-        opacity="0.5"
-      />
-      <rect
-        x="8"
-        y="8"
-        width="6"
-        height="6"
-        rx="1"
-        fill="currentColor"
-        opacity="0.9"
-      />
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+      <circle cx="7" cy="7" r="6" fill="currentColor" opacity="0.15" stroke="currentColor" strokeWidth="1.2" />
+      <circle cx="7" cy="7" r="2.5" fill="currentColor" />
     </svg>
   );
 }
 
-function TransactionsIcon() {
+function ToggleOff() {
   return (
-    <svg
-      width="15"
-      height="15"
-      viewBox="0 0 15 15"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="M1 3.5h13M1 7.5h9M1 11.5h11"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+      <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.2" opacity="0.4" />
+    </svg>
+  );
+}
+
+function DashIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3">
+      <rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1" />
+      <rect x="9" y="1.5" width="5.5" height="5.5" rx="1" />
+      <rect x="1.5" y="9" width="5.5" height="5.5" rx="1" />
+      <rect x="9" y="9" width="5.5" height="5.5" rx="1" />
+    </svg>
+  );
+}
+
+function TxIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+      <path d="M2 4h12M2 8h9M2 12h11" />
     </svg>
   );
 }

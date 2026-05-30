@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { deduplicateTransactions } from "@/lib/dedup";
 import { getTransactions, saveTransactions } from "@/lib/storage";
 import type { BankName, Transaction } from "@/lib/types";
@@ -52,6 +52,7 @@ export function UploadModal({
   const [bank, setBank] = useState<BankName>("bca");
   const [state, setState] = useState<UploadState>({ status: "idle" });
   const [dragging, setDragging] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function handleFile(file: File) {
@@ -83,12 +84,7 @@ export function UploadModal({
 
     setState({ status: "parsing" });
 
-    let parsed: {
-      date: string;
-      description: string;
-      amount: number;
-      category: string;
-    }[];
+    let parsed: { date: string; description: string; amount: number; category: string }[];
     try {
       const res = await fetch("/api/parse", {
         method: "POST",
@@ -97,19 +93,12 @@ export function UploadModal({
       });
       const data = await res.json();
       if (!res.ok) {
-        setState({
-          status: "error",
-          message: data.error ?? "API error",
-          raw: data.raw,
-        });
+        setState({ status: "error", message: data.error ?? "API error", raw: data.raw });
         return;
       }
       parsed = data.transactions;
     } catch {
-      setState({
-        status: "error",
-        message: "Network error — please try again.",
-      });
+      setState({ status: "error", message: "Network error — please try again." });
       return;
     }
 
@@ -124,207 +113,171 @@ export function UploadModal({
     }));
 
     const existing = getTransactions();
-    const { newTransactions, duplicateCount } = deduplicateTransactions(
-      existing,
-      incoming,
-    );
+    const { newTransactions, duplicateCount } = deduplicateTransactions(existing, incoming);
     saveTransactions([...existing, ...newTransactions]);
     window.dispatchEvent(new CustomEvent("ledger:updated"));
 
-    setState({
-      status: "done",
-      added: newTransactions.length,
-      duplicates: duplicateCount,
-    });
+    setState({ status: "done", added: newTransactions.length, duplicates: duplicateCount });
   }
 
   function handleClose() {
     setState({ status: "idle" });
+    setSelectedFile(null);
     onCloseAction();
   }
 
+  useEffect(() => {
+    if (!open) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") handleClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   if (!open) return null;
+
+  const isProcessing = state.status === "extracting" || state.status === "parsing";
+  const progressSteps = ["Opening the statement…", "Reading entries…", "Sorting by category…", "Posting to the ledger…"];
 
   return (
     <div
+      className="overlay"
+      onMouseDown={(e) => e.target === e.currentTarget && handleClose()}
       role="dialog"
       aria-modal="true"
       aria-label="Upload Statement"
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{ background: "rgba(0,0,0,0.75)" }}
-      onClick={(e) => e.target === e.currentTarget && handleClose()}
-      onKeyDown={(e) => e.key === "Escape" && handleClose()}
     >
-      <div
-        className="mx-4 w-full max-w-md rounded-2xl p-6 shadow-2xl"
-        style={{
-          background: "#111722",
-          border: "1px solid rgba(255,255,255,0.09)",
-        }}
-      >
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-base font-semibold" style={{ color: "#E4E8F5" }}>
-            Upload Statement
-          </h2>
-          <button
-            type="button"
-            onClick={handleClose}
-            className="text-xl leading-none transition-colors"
-            style={{ color: "#3D4465" }}
-          >
-            ×
-          </button>
-        </div>
+      <div className="modal">
+        <button type="button" className="modal__close" onClick={handleClose} aria-label="Close">
+          ✕
+        </button>
+        <h2 className="modal__title">Add to the ledger</h2>
+        <p className="modal__sub">drop a bank statement and I'll post the entries</p>
 
-        {state.status === "idle" && (
-          <>
-            <div className="mb-4">
-              <label
-                htmlFor="bank-select"
-                className="mb-1.5 block text-xs uppercase tracking-wider font-medium"
-                style={{ color: "#3D4465" }}
-              >
-                Bank
-              </label>
-              <select
-                id="bank-select"
-                value={bank}
-                onChange={(e) => setBank(e.target.value as BankName)}
-                className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none"
-                style={{
-                  background: "#192030",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  color: "#9AA0BE",
-                }}
-              >
-                {BANKS.map((b) => (
-                  <option
-                    key={b.value}
-                    value={b.value}
-                    style={{ background: "#192030" }}
-                  >
-                    {b.label}
-                  </option>
-                ))}
-              </select>
+        {isProcessing && (
+          <div className="parsing">
+            <div className="parsing__txt">
+              {state.status === "extracting" ? progressSteps[0] : progressSteps[2]}
             </div>
+            <div className="parsing__bar">
+              <div className="parsing__fill" style={{ width: state.status === "extracting" ? "35%" : "75%" }} />
+            </div>
+          </div>
+        )}
 
-            <button
-              type="button"
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDragging(true);
-              }}
+        {!isProcessing && state.status === "idle" && (
+          <>
+            <div
+              className={`dropzone${dragging ? " drag" : ""}`}
+              onClick={() => inputRef.current?.click()}
+              onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
+              onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
               onDragLeave={() => setDragging(false)}
               onDrop={(e) => {
                 e.preventDefault();
                 setDragging(false);
-                const file = e.dataTransfer.files[0];
-                if (file) handleFile(file);
+                const f = e.dataTransfer.files[0];
+                if (f) setSelectedFile(f);
               }}
-              onClick={() => inputRef.current?.click()}
-              className="w-full cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition-all"
-              style={
-                dragging
-                  ? {
-                      borderColor: "#F5A623",
-                      background: "rgba(245,166,35,0.07)",
-                    }
-                  : {
-                      borderColor: "rgba(255,255,255,0.08)",
-                      background: "transparent",
-                    }
-              }
+              role="button"
+              tabIndex={0}
             >
-              <p className="text-sm" style={{ color: "#5C6280" }}>
-                Drag & drop a PDF here, or click to select
-              </p>
+              <div className="dropzone__icon">
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <path d="M14 2v6h6M12 18v-6M9 15l3-3 3 3" />
+                </svg>
+              </div>
+              <div className="dropzone__main">
+                {selectedFile ? selectedFile.name : "Drop a PDF here"}
+              </div>
+              <div className="dropzone__hint">
+                {selectedFile ? "ready to post" : "or click to browse · PDF up to 10 MB"}
+              </div>
               <input
                 ref={inputRef}
                 type="file"
                 accept=".pdf"
-                className="hidden"
+                style={{ display: "none" }}
                 onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleFile(file);
+                  const f = e.target.files?.[0];
+                  if (f) setSelectedFile(f);
                 }}
               />
-            </button>
+            </div>
+
+            <div className="bank-pick">
+              <div className="bank-pick__label">Which bank?</div>
+              <div className="bank-grid">
+                {BANKS.map((b) => (
+                  <button
+                    key={b.value}
+                    type="button"
+                    className={`bank-opt${bank === b.value ? " on" : ""}`}
+                    onClick={() => setBank(b.value)}
+                  >
+                    {b.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="modal__actions">
+              <button type="button" className="btn-ghost" onClick={handleClose}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                disabled={!selectedFile}
+                onClick={() => selectedFile && handleFile(selectedFile)}
+              >
+                Post entries
+              </button>
+            </div>
           </>
         )}
 
-        {(state.status === "extracting" || state.status === "parsing") && (
-          <div className="flex flex-col items-center gap-3 py-8">
-            <div
-              className="h-7 w-7 animate-spin rounded-full border-2 border-t-transparent"
-              style={{ borderColor: "#F5A623", borderTopColor: "transparent" }}
-            />
-            <p className="text-sm" style={{ color: "#5C6280" }}>
-              {state.status === "extracting"
-                ? "Extracting text from PDF..."
-                : "Asking Claude to find transactions..."}
-            </p>
-          </div>
-        )}
-
-        {state.status === "done" && (
-          <div className="py-6 text-center">
-            <p
-              className="mb-2 text-2xl font-mono font-bold"
-              style={{ color: "#4ADE80" }}
-            >
-              ✓
-            </p>
-            <p className="font-medium" style={{ color: "#C8CCDF" }}>
-              {state.added} transaction{state.added !== 1 ? "s" : ""} added.
+        {!isProcessing && state.status === "done" && (
+          <div style={{ padding: "30px 0 10px", textAlign: "center" }}>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: 32, color: "var(--success)", marginBottom: 8 }}>✓</div>
+            <p style={{ fontFamily: "var(--font-display)", fontSize: 18, color: "var(--ink)", margin: "0 0 4px" }}>
+              {state.added} {state.added === 1 ? "entry" : "entries"} posted to the ledger.
             </p>
             {state.duplicates > 0 && (
-              <p className="mt-1 text-sm" style={{ color: "#5C6280" }}>
-                {state.duplicates} duplicate
-                {state.duplicates !== 1 ? "s" : ""} skipped.
+              <p style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontSize: 14, color: "var(--ink-faint)", margin: "0 0 20px" }}>
+                {state.duplicates} duplicate{state.duplicates !== 1 ? "s" : ""} skipped.
               </p>
             )}
-            <button
-              type="button"
-              onClick={handleClose}
-              className="mt-5 rounded-lg px-6 py-2 text-sm font-medium transition-opacity hover:opacity-90"
-              style={{ background: "#F5A623", color: "#07090e" }}
-            >
+            <button type="button" className="btn-primary" style={{ maxWidth: 160, margin: "20px auto 0" }} onClick={handleClose}>
               Done
             </button>
           </div>
         )}
 
-        {state.status === "error" && (
-          <div className="py-4">
-            <p
-              className="mb-2 text-sm font-medium"
-              style={{ color: "#F87171" }}
-            >
+        {!isProcessing && state.status === "error" && (
+          <div style={{ padding: "16px 0" }}>
+            <p style={{ fontFamily: "var(--font-body)", color: "var(--accent)", marginBottom: 12 }}>
               {state.message}
             </p>
             {state.raw && (
-              <details className="text-xs" style={{ color: "#5C6280" }}>
-                <summary className="cursor-pointer">View raw response</summary>
-                <pre
-                  className="mt-2 max-h-40 overflow-auto rounded-lg p-2 text-xs"
-                  style={{
-                    background: "#0F1520",
-                    border: "1px solid rgba(255,255,255,0.06)",
-                  }}
-                >
+              <details style={{ fontSize: 12, color: "var(--ink-faint)" }}>
+                <summary style={{ cursor: "pointer" }}>View raw response</summary>
+                <pre style={{ marginTop: 8, padding: 8, background: "var(--paper-shade)", borderRadius: "var(--radius-sm)", overflow: "auto", maxHeight: 160, fontSize: 11 }}>
                   {state.raw}
                 </pre>
               </details>
             )}
-            <button
-              type="button"
-              onClick={() => setState({ status: "idle" })}
-              className="mt-4 text-sm underline"
-              style={{ color: "#F5A623" }}
-            >
-              Try again
-            </button>
+            <div className="modal__actions" style={{ marginTop: 16 }}>
+              <button type="button" className="btn-ghost" onClick={handleClose}>
+                Cancel
+              </button>
+              <button type="button" className="btn-primary" onClick={() => setState({ status: "idle" })}>
+                Try again
+              </button>
+            </div>
           </div>
         )}
       </div>

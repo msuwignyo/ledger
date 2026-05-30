@@ -1,7 +1,7 @@
 "use client";
 
 import * as d3 from "d3";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { groupTransactions } from "@/lib/transactions";
 import type { Period, Transaction } from "@/lib/types";
 
@@ -24,10 +24,18 @@ export function FrequencyChart({
   period: Period;
 }) {
   const svgRef = useRef<SVGSVGElement>(null);
-  const data = groupTransactions(transactions, period);
+  const data = useMemo(
+    () => groupTransactions(transactions, period),
+    [transactions, period],
+  );
 
   useEffect(() => {
     if (!svgRef.current || data.length === 0) return;
+
+    const cs = getComputedStyle(document.documentElement);
+    const accent = cs.getPropertyValue("--accent").trim() || "#8b2c1d";
+    const inkFaint = cs.getPropertyValue("--ink-faint").trim() || "#8a7e6e";
+    const ruleSoft = cs.getPropertyValue("--rule-soft").trim() || "#e3d9c4";
 
     const rotate = period === "daily" || period === "weekly";
     const margin = { top: 16, right: 16, bottom: rotate ? 64 : 40, left: 40 };
@@ -65,7 +73,7 @@ export function FrequencyChart({
       )
       .call((g) => g.select(".domain").remove())
       .call((g) =>
-        g.selectAll(".tick line").attr("stroke", "rgba(255,255,255,0.05)"),
+        g.selectAll(".tick line").attr("stroke", ruleSoft),
       );
 
     // Line connecting dots
@@ -79,7 +87,7 @@ export function FrequencyChart({
       .append("path")
       .datum(data)
       .attr("fill", "none")
-      .attr("stroke", "#F5A623")
+      .attr("stroke", accent)
       .attr("stroke-width", 1.5)
       .attr("d", line);
 
@@ -93,8 +101,8 @@ export function FrequencyChart({
       .attr("cx", (d) => (x(d.label) ?? 0) + x.bandwidth() / 2)
       .attr("cy", (d) => y(d.count))
       .attr("r", 4)
-      .attr("fill", "#F5A623")
-      .attr("fill-opacity", 0.9);
+      .attr("fill", accent)
+      .attr("fill-opacity", 1);
 
     // X axis
     const everyN =
@@ -116,7 +124,7 @@ export function FrequencyChart({
     if (rotate) {
       xAxis
         .selectAll("text")
-        .attr("fill", "#3D4465")
+        .attr("fill", inkFaint)
         .attr("font-size", "11px")
         .attr("text-anchor", "end")
         .attr("dx", "-0.5em")
@@ -125,7 +133,7 @@ export function FrequencyChart({
     } else {
       xAxis
         .selectAll("text")
-        .attr("fill", "#3D4465")
+        .attr("fill", inkFaint)
         .attr("font-size", "11px")
         .attr("dy", "1.2em");
     }
@@ -137,15 +145,13 @@ export function FrequencyChart({
       .call((g) => g.select(".domain").remove())
       .call((g) => g.selectAll(".tick line").remove())
       .selectAll("text")
-      .attr("fill", "#3D4465")
+      .attr("fill", inkFaint)
       .attr("font-size", "11px");
   }, [data, period]);
 
   if (data.length === 0) {
     return (
-      <div className="flex h-60 items-center justify-center text-sm text-zinc-400">
-        No data yet — upload a statement to get started.
-      </div>
+      <div className="empty">Nothing recorded yet.</div>
     );
   }
 

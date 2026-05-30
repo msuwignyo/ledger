@@ -4,10 +4,7 @@ import { useState } from "react";
 import type { Transaction } from "@/lib/types";
 import { CategoryDropdown } from "./CategoryDropdown";
 
-type SortKey = keyof Pick<
-  Transaction,
-  "date" | "description" | "amount" | "category" | "bank"
->;
+type SortKey = keyof Pick<Transaction, "date" | "description" | "amount" | "category" | "bank">;
 type SortDir = "asc" | "desc";
 
 function formatIDR(amount: number): string {
@@ -15,42 +12,35 @@ function formatIDR(amount: number): string {
   return amount < 0 ? `-Rp ${abs}` : `+Rp ${abs}`;
 }
 
-type SortHeaderProps = {
-  col: SortKey;
-  label: string;
-  active: boolean;
-  dir: SortDir;
-  onSortAction: (k: SortKey) => void;
-};
-
-function SortHeader({
+function SortTh({
   col,
   label,
-  active,
-  dir,
-  onSortAction,
-}: SortHeaderProps) {
+  num,
+  sortKey,
+  sortDir,
+  onSort,
+}: {
+  col: SortKey;
+  label: string;
+  num?: boolean;
+  sortKey: SortKey;
+  sortDir: SortDir;
+  onSort: (k: SortKey) => void;
+}) {
+  const active = sortKey === col;
+  const arrow = active ? (sortDir === "asc" ? "↑" : "↓") : "↕";
   return (
     <th
-      aria-sort={active ? (dir === "asc" ? "ascending" : "descending") : "none"}
-      className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer select-none transition-colors"
-      style={{ color: active ? "#9AA0BE" : "#3D4465" }}
-      onClick={() => onSortAction(col)}
-      onKeyDown={(e) =>
-        (e.key === "Enter" || e.key === " ") && onSortAction(col)
-      }
+      className={num ? "num" : ""}
+      onClick={() => onSort(col)}
+      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onSort(col)}
       tabIndex={0}
+      aria-sort={active ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
     >
       {label}{" "}
-      {active ? (
-        dir === "asc" ? (
-          "↑"
-        ) : (
-          "↓"
-        )
-      ) : (
-        <span className="opacity-30">↕</span>
-      )}
+      <span className={active ? "sar" : ""} style={{ opacity: active ? 1 : 0.35 }}>
+        {arrow}
+      </span>
     </th>
   );
 }
@@ -64,7 +54,7 @@ export function TransactionTable({
 }) {
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
-  const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [filterCategory, setFilterCategory] = useState("all");
   const [filterStart, setFilterStart] = useState("");
   const [filterEnd, setFilterEnd] = useState("");
 
@@ -78,7 +68,7 @@ export function TransactionTable({
       setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     } else {
       setSortKey(key);
-      setSortDir("asc");
+      setSortDir(key === "date" || key === "amount" ? "desc" : "asc");
     }
   }
 
@@ -97,209 +87,94 @@ export function TransactionTable({
     });
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Filters */}
-      <div className="flex gap-3 items-end flex-wrap">
-        <div>
-          <label
-            htmlFor="filter-start"
-            className="block text-xs uppercase tracking-wider mb-1.5 font-medium"
-            style={{ color: "#3D4465" }}
-          >
-            From
-          </label>
+    <div>
+      <div className="filters">
+        <div className="field">
+          <label htmlFor="f-start">From</label>
           <input
-            id="filter-start"
+            id="f-start"
             type="date"
             value={filterStart}
             onChange={(e) => setFilterStart(e.target.value)}
-            className="rounded-lg px-3 py-1.5 text-sm focus:outline-none"
-            style={{
-              background: "#192030",
-              border: "1px solid rgba(255,255,255,0.08)",
-              color: "#9AA0BE",
-              colorScheme: "dark",
-            }}
           />
         </div>
-        <div>
-          <label
-            htmlFor="filter-end"
-            className="block text-xs uppercase tracking-wider mb-1.5 font-medium"
-            style={{ color: "#3D4465" }}
-          >
-            To
-          </label>
+        <div className="field">
+          <label htmlFor="f-end">To</label>
           <input
-            id="filter-end"
+            id="f-end"
             type="date"
             value={filterEnd}
             onChange={(e) => setFilterEnd(e.target.value)}
-            className="rounded-lg px-3 py-1.5 text-sm focus:outline-none"
-            style={{
-              background: "#192030",
-              border: "1px solid rgba(255,255,255,0.08)",
-              color: "#9AA0BE",
-              colorScheme: "dark",
-            }}
           />
         </div>
-        <div>
-          <label
-            htmlFor="filter-category"
-            className="block text-xs uppercase tracking-wider mb-1.5 font-medium"
-            style={{ color: "#3D4465" }}
-          >
-            Category
-          </label>
+        <div className="field">
+          <label htmlFor="f-cat">Category</label>
           <select
-            id="filter-category"
+            id="f-cat"
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="rounded-lg px-3 py-1.5 text-sm focus:outline-none"
-            style={{
-              background: "#192030",
-              border: "1px solid rgba(255,255,255,0.08)",
-              color: "#9AA0BE",
-            }}
           >
             {categories.map((c) => (
-              <option key={c} value={c} style={{ background: "#192030" }}>
+              <option key={c} value={c}>
                 {c === "all" ? "All categories" : c}
               </option>
             ))}
           </select>
         </div>
-        <p className="text-sm pb-1.5 font-mono" style={{ color: "#3D4465" }}>
-          {filtered.length} transactions
-        </p>
+        <div className="field__count">{filtered.length} entries</div>
       </div>
 
-      {/* Table */}
-      <div
-        className="rounded-xl overflow-hidden"
-        style={{
-          background: "#111722",
-          border: "1px solid rgba(255,255,255,0.07)",
-        }}
-      >
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-              <tr style={{ background: "#0F1520" }}>
-                <SortHeader
-                  col="date"
-                  label="Date"
-                  active={sortKey === "date"}
-                  dir={sortDir}
-                  onSortAction={handleSort}
-                />
-                <SortHeader
-                  col="description"
-                  label="Description"
-                  active={sortKey === "description"}
-                  dir={sortDir}
-                  onSortAction={handleSort}
-                />
-                <SortHeader
-                  col="amount"
-                  label="Amount"
-                  active={sortKey === "amount"}
-                  dir={sortDir}
-                  onSortAction={handleSort}
-                />
-                <SortHeader
-                  col="category"
-                  label="Category"
-                  active={sortKey === "category"}
-                  dir={sortDir}
-                  onSortAction={handleSort}
-                />
-                <SortHeader
-                  col="bank"
-                  label="Bank"
-                  active={sortKey === "bank"}
-                  dir={sortDir}
-                  onSortAction={handleSort}
-                />
-                <th
-                  className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                  style={{ color: "#3D4465" }}
+      <div className="ledger-table-wrap">
+        <table className="ledger">
+          <thead>
+            <tr>
+              <SortTh col="date" label="Date" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+              <SortTh col="description" label="Description" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+              <SortTh col="category" label="Category" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+              <SortTh col="bank" label="Bank" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+              <SortTh col="amount" label="Amount" num sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={5}
+                  style={{
+                    textAlign: "center",
+                    padding: "44px",
+                    fontStyle: "italic",
+                    fontFamily: "var(--font-display)",
+                    color: "var(--ink-faint)",
+                  }}
                 >
-                  Source
-                </th>
+                  No entries match this filter.
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-4 py-10 text-center text-sm"
-                    style={{ color: "#3D4465" }}
-                  >
-                    No transactions found.
+            ) : (
+              filtered.map((tx) => (
+                <tr key={tx.id}>
+                  <td className="td-date">{tx.date}</td>
+                  <td className="td-desc">{tx.description}</td>
+                  <td>
+                    <CategoryDropdown
+                      value={tx.category}
+                      onChangeAction={(cat) => onCategoryChangeAction(tx.id, cat)}
+                    />
+                  </td>
+                  <td>
+                    <span className="td-bank">
+                      <span className="bank-tag">{tx.bank}</span>
+                    </span>
+                  </td>
+                  <td className={`td-amt ${tx.amount < 0 ? "expense" : "credit"}`}>
+                    {formatIDR(tx.amount)}
                   </td>
                 </tr>
-              ) : (
-                filtered.map((tx) => (
-                  <tr
-                    key={tx.id}
-                    style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background =
-                        "rgba(255,255,255,0.025)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "transparent";
-                    }}
-                  >
-                    <td
-                      className="px-4 py-3 text-sm whitespace-nowrap font-mono"
-                      style={{ color: "#5C6280" }}
-                    >
-                      {tx.date}
-                    </td>
-                    <td
-                      className="px-4 py-3 text-sm max-w-xs truncate"
-                      style={{ color: "#C8CCDF" }}
-                    >
-                      {tx.description}
-                    </td>
-                    <td
-                      className="px-4 py-3 text-sm font-medium whitespace-nowrap font-mono"
-                      style={{
-                        color: tx.amount < 0 ? "#F87171" : "#4ADE80",
-                      }}
-                    >
-                      {formatIDR(tx.amount)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <CategoryDropdown
-                        value={tx.category}
-                        onChangeAction={(cat) =>
-                          onCategoryChangeAction(tx.id, cat)
-                        }
-                      />
-                    </td>
-                    <td
-                      className="px-4 py-3 text-xs uppercase tracking-wider font-medium"
-                      style={{ color: "#4A5070" }}
-                    >
-                      {tx.bank}
-                    </td>
-                    <td
-                      className="px-4 py-3 text-xs max-w-xs truncate"
-                      style={{ color: "#3D4465" }}
-                    >
-                      {tx.sourceFile}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
